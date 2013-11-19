@@ -2,6 +2,6 @@
 <classpath>
 	<classpathentry excluding=".MANIFEST|.classpath|.project|1-n-no-loss.sim|1-n-with-loss.sim|COPYING|Compile|README|Run|classes/|outputs/" kind="src" path=""/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="src" path="/DiSimmcast"/>
+	<classpathentry exported="true" kind="src" path="/DiSimmcast"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

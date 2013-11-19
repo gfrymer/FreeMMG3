@@ -28,12 +28,15 @@ public class Connection extends Thread implements Runnable {
 	public String sendCmd(CommandProtocol cp)
 	{
 		try {
-			os.writeInt(cp.getCmdId());
-			os.writeByte(cp.getAction());
-			os.writeInt(cp.getParameters().length());
-			if (cp.getParameters().length()>0)
+			synchronized (os)
 			{
-				os.writeBytes(cp.getParameters());
+				os.writeInt(cp.getCmdId());
+				os.writeByte(cp.getAction());
+				os.writeInt(cp.getParameters().length());
+				if (cp.getParameters().length()>0)
+				{
+					os.writeBytes(cp.getParameters());
+				}
 			}
 
 			if ((cp.getAction()==CommandProtocol.ACTION_OK) || (cp.getAction()==CommandProtocol.ACTION_ERROR))
@@ -65,6 +68,7 @@ public class Connection extends Thread implements Runnable {
 				else
 				{
 					acks.put(ack);
+					Thread.sleep(250);
 				}
 			}
 		} catch (IOException e) {
@@ -100,14 +104,20 @@ public class Connection extends Thread implements Runnable {
 			CommandProtocol cp = null;
 			try
 			{
-				int cmdid = is.readInt();
-				byte action = is.readByte();
-				int parametersSize = is.readInt();
-				byte[] param = new byte[parametersSize];
-				int totread = 0;
-				while (totread<parametersSize)
+				int cmdid = 0;
+				byte action = 0;
+				byte[] param = null;
+				synchronized (is)
 				{
-					totread += is.read(param, totread, parametersSize - totread);
+					cmdid = is.readInt();
+					action = is.readByte();
+					int parametersSize = is.readInt();
+					param = new byte[parametersSize];
+					int totread = 0;
+					while (totread<parametersSize)
+					{
+						totread += is.read(param, totread, parametersSize - totread);
+					}
 				}
 				String parameters = new String(param);
 				cp = CommandProtocol.createFromAction(connId,cmdid,action,parameters);
@@ -115,13 +125,18 @@ public class Connection extends Thread implements Runnable {
 			}
 			if (cp!=null)
 			{
-				if ((cp.getAction()==CommandProtocol.ACTION_OK) || (cp.getAction()==CommandProtocol.ACTION_ERROR)) 
+				try
 				{
-					acks.add(cp);
-				}
-				else
-				{
-					in.add(cp);
+					if ((cp.getAction()==CommandProtocol.ACTION_OK) || (cp.getAction()==CommandProtocol.ACTION_ERROR)) 
+					{
+						acks.put(cp);
+					}
+					else
+					{
+						in.put(cp);
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
 		}
