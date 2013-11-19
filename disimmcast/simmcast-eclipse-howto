@@ -1,0 +1,93 @@
+INSTRUÇÕES DE COMO USAR A INTERFACE DE DESENVOLVIMENTO
+ECLIPSE PARA CRIAR NOVAS SIMULAÇÕES NO SIMMCAST
+
+Este how-to tem como objetivo demonstrar como 
+utilizar o Eclipse para editar e compilar fontes do Simmcast
+em ambientes GNU/Linux (no Windows, deve ser feito 
+manualmente). As instruções são para que seja 
+mantida a estrutura original de arquivos do Simmcast.
+
+As linhas de comando são aquelas que iniciam por "$".
+
+1..........................................................
+Instale a plataforma Eclipse (http://www.eclipse.org), 
+caso ainda não instalada( a versão utilizada foi a 3.1.1). 
+Seu workspace estará no diretório home ("~" ou $HOME).
+
+
+2..........................................................
+Obtenha uma versão recente do Simmcast, no caso deste HowTo,
+a 1.2.4, de http://inf.unisinos.br/~simmcast/Simmcast-1.2.4.tar.gz
+Descompacte o Simmcast em um diretório de sua preferência:
+
+$ cd ~ 
+$ tar -xfz Simmcast-1.2.4.tar.gz
+
+Os fontes do Simmcast estarão em ~/Simmcast-1.2.4/src/ 
+E os exemplos/simulações em ~/Simmcast-1.2.4/Examples/
+
+
+3...........................................................
+Execute o script Install e aguarde até o final de sua 
+execução. O Script irá verificar a existência de um 
+diretório workspace no seu $HOME e, caso não exista irá
+criá-lo. Em seguida criará os links para importação do
+Simmcast e seus exemplos para uso no Eclipse
+
+$ ./Install
+
+
+OS PASSOS ABAIXO CONSIDERAM QUE O ECLIPSE TENHA SIDO INICIADO.
+
+
+4..........................................................
+Vamos agora importar para o Eclipse todos os projetos 
+cujos links foram criados anteriormente, Inclusive o do 
+Simmcast que é um conjunto de classes (um framework).
+
+A. Menu File -> Import. 
+B. Selecione a opção Existing Projects into Workspace.
+C. Clique em Next.
+D. Clique em Browse.
+E. Selecione o seu diretório workspace
+F. Clique em Finish.
+
+Agora você já tem tudo que precisa para usar o Simmcast e
+seus exemplos no Eclipse.
+
+
+6..........................................................
+
+Para executar uma simulação:
+
+A. Clique com o botão direito em cima do arquivo .java 
+   onde está contida a classe "main".
+B. Clique em Run As->"Run...". 
+C. Na aba main:
+      * preencha com o nome do projeto a ser 
+        executado no campo Project.
+      * Preencha com o nome do arquivo onde se encontra
+        a main no campo Main Class.
+D. Na aba arguments preencha o campo Program arguments
+   com o nome do arquivo .sim a ser usado.
+E. Clique em Run.
+
+Agora você só precisa repetir estes passos, caso queira 
+mudar o parâmetro, senão basta fazer o seguinte:
+
+A. Clique com o botão direito em cima do arquivo .java 
+   onde está contida a classe "main".
+B. Clique em Run As->Java Aplication
+
+   
+7..........................................................
+Para compilar um exemplo:
+
+A. Clique em Project 
+B. verifique se a opção Build Automatically está marcada. 
+   Caso não esteja, marque-a, e isto fará que o projeto seja 
+   compilado automaticamente.
+   
+   
+por   
+Felipe "Klutz" Varga

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+./CompileSimmcast
+
+cd classes
+
+jar -cf ../simmcast.jar arjuna simmcast
+
+cd ../src
+
+jar -uf ../simmcast.jar arjuna simmcast
+

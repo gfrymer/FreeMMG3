@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if ! [ "$1" ] 
+then 
+    echo "Usage: ./Run <file.sim>"
+else
+    cd classes
+    java -classpath ../../../classes:. StopAndWait1_N ../$1
+    cd ..       
+fi

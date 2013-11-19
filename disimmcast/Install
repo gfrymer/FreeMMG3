@@ -1,0 +1,30 @@
+#!/bin/sh
+# @author Felipe "Klutz" Varga
+
+echo
+
+if [ -d $HOME/workspace ]
+  then
+        echo
+        echo "Directory workspace found!"
+        echo
+  else
+            
+        echo
+        echo "Directory workspace not found... creating workspace!"
+        mkdir $HOME/workspace
+        echo "Done!"
+        echo
+
+  fi
+
+
+echo "Copying Simmcast..."
+cp -Lr src ~/workspace/Simmcast
+echo "Done!"
+echo
+
+echo "Copying Examples..."
+cp -Lr Examples/* ~/workspace/
+echo "Done!"
+echo

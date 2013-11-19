@@ -1,0 +1,47 @@
+# Topology 1-N with a stop-and-wait multicast protocol, with fixed delay
+# and retransmission via multicast.
+
+##########################################
+# macros
+macro !BANDWIDTH "10Kbps"
+macro !DELAY "10ms"
+new FIXED_DELAY simmcast.stream.FixedStream !DELAY
+macro !QUEUESIZE "50"
+macro !NO_LOSS "0.00"
+macro !WITH_LOSS "0.1"
+macro !N "5"
+macro !LOSS_CONDITIONS "!NO_LOSS"
+
+new tracer simmcast.trace.SimmcastTraceGenerator
+network setTracer tracer
+tracer setFile ../outputs/trace-no-loss.txt
+
+#new tracer simmcast.trace.NamTraceGenerator
+#network setTracer tracer
+#tracer setFile ../outputs/trace-no-loss.nam
+#tracer setLinkDelay !DELAY
+
+
+##########################################
+# create nodes containing user logic (they are threads at nodes)
+new SOURCE SourceNode
+new RECEIVER[1..!N] SinkNode
+
+############################################
+# establish bidirectional links (pairs of paths)
+SOURCE              addPath RECEIVER[2..!N]     !QUEUESIZE !BANDWIDTH FIXED_DELAY !LOSS_CONDITIONS
+RECEIVER[1..!N]     addPath SOURCE              !QUEUESIZE !BANDWIDTH FIXED_DELAY !LOSS_CONDITIONS
+
+########################################
+# creates a group
+new SOURCE_TO_RECEIVERS_GROUP simmcast.group.Group
+
+SOURCE_TO_RECEIVERS_GROUP join RECEIVER[2..!N]
+
+# set parameters required for source and receivers
+#SOURCE          setDestinationGroup SOURCE_TO_RECEIVERS_GROUP   # set destination for the source, i.e., group that has receivers
+SOURCE          setDestinationGroupIds SOURCE_TO_RECEIVERS_GROUP:getNetworkId SOURCE_TO_RECEIVERS_GROUP:getNetworkIds
+RECEIVER[1..!N] setSourceId         SOURCE                      # set the destination for receivers (that is, source)
+SOURCE          setTimerLength 100ms                              # must be sufficiently large to prevent timeouts
+SOURCE          setNumPktsToSend 1                             # defines simulation duration
+SOURCE          setNumEndingPackets 1                           # how many termination packets source must send before quiting

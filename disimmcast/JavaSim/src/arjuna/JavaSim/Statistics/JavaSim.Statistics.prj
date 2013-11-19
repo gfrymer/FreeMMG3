@@ -1,0 +1,16 @@
+sun.jws.version.1
+sun.jws.package=JavaSim.Statistics
+sun.jws.sourcepath=/home/nmcl/JavaSim/classes/arjuna/JavaSim/Statistics
+sun.jws.type=package
+sun.jws.classdir=../../../
+sun.jws.files=List
+Mean.java
+Quantile.java
+SimpleHistogram.java
+PrecisionHistogram.java
+Bucket.java
+TimeVariance.java
+Variance.java
+StatisticsException.java
+Histogram.java
+EndOfList

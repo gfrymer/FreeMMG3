@@ -1,0 +1,26 @@
+
+This is Simmcast 1.2.6, dated 2008-06-30
+
+It contains the framework and examples of instantiations 
+(programs that are simulations).
+
+README            this readme
+COPYING           license
+Documentation/    documentation (API, tutorial, configuration file)
+JavaSim/          statistical package thanks to Mark Little/Newcastle
+Examples/         examples of use with Simmcast
+src/              Simmcast framework sourcecode
+classes/          Simmcast executable classes
+Tools/            External tools (visualization, topology, etc)
+
+CompileSimmcast         *nix script to recompile simmcast
+simmcast-eclipse-howto  instructions on using this w/Eclipse.org IDE
+Install                 *nix script to help integration with Eclipse
+CreateJar               *nix script to create the simmcast.jar library
+
+Please see:
+- Documentation/introduction.pdf
+- Documentation/API/index.html
+- Documentation/docs.pdf
+
+http://www.simmcast.org for further documentation.

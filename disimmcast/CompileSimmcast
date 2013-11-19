@@ -1,0 +1,5 @@
+#!/bin/sh
+
+javac JavaSim/src/arjuna/JavaSim/*/*.java -d classes/
+javac -classpath classes src/simmcast/*/*.java -d classes/
+

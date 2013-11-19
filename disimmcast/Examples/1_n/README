@@ -1,0 +1,57 @@
+
+SIMMCAST EXAMPLES: 1-to-n transmission
+======================================
+
+General overview
+----------------
+
+This is part of a series of examples for the Simmcast network simulation
+framework. Simmcast is a research project developed at the Universidade do
+Vale do Rio dos Sinos (UNISINOS), in Brazil. It is free software, licensed
+under the terms of the GNU General Public License (details below). You can
+find more information, documentation and the program itself at
+http://inf.unisinos.br/~simmcast.
+
+Example description
+-------------------
+
+In this example a source node reliably transmits packets to a group of
+sink nodes. The source is directly connected through paths to the group
+of sinks. The number of packets to be sent is configurable. A
+stop-and-wait protocol is employed in order to achieve reliable
+transmission: the source sends a DATA packet via multicast, starts a
+timer, creates a set, and then waits for a positive confirmation of
+receipt (ACK packet) from every sink in the group. So, each sink
+responds to a DATA packet by sending an ACK packet, even if the sink has
+already received such DATA packet. Each new ACK received by the source
+results in the corresponding receiver being added to the set, if not
+already there; when the set becomes complete, the source proceeds to the
+transmission of the next DATA packet, until all DATA packets have been
+transmitted and acknowledged by all sinks. If either DATA or ACK packets
+are lost, the timeout maintained by the source eventually expires and
+then the source retransmits the DATA packet; the sink set is not
+cleared. After the last DATA packet, the source sends a number of END
+packets, so that sinks receive at least one of such packets; upon doing
+so, a sink sets a long timer, and when it expires, reads all pending
+packets and terminates.
+
+License
+-------
+
+Simmcast example: 1-to-n transmission
+Copyright (C) 2003 Marinho Barcellos
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
