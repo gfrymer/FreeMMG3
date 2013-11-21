@@ -3,26 +3,53 @@ package simmcast.distribution;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
 
 public class Connection extends Thread implements Runnable {
-
+	
 	private java.util.concurrent.LinkedBlockingQueue<CommandProtocol> in;
-	private java.util.concurrent.LinkedBlockingQueue<CommandProtocol> acks;
+	private Vector<Integer> acksMutex;
+	private HashMap<Integer,CommandProtocol> acks;
 	private DataInputStream is;
 	private DataOutputStream os;
 	private boolean connected;
 	private int connId;
-	private String address;
+	private String description;
 
-	public Connection(int mConnId, String mAddress, java.util.concurrent.LinkedBlockingQueue<CommandProtocol> mIn, DataInputStream mIs, DataOutputStream mOs)
+	public Connection(int mConnId, String mDescription, DataInputStream mIs, DataOutputStream mOs, java.util.concurrent.LinkedBlockingQueue<CommandProtocol> mIn)
 	{
 		connId = mConnId;
-		address = mAddress;
+		description = mDescription;
 		in = mIn;
-		acks = new java.util.concurrent.LinkedBlockingQueue<CommandProtocol>();
+		acksMutex = new Vector<Integer>();
+		acks = new HashMap<Integer, CommandProtocol>();
 		is = mIs;
 		os = mOs;
 		connected = true;
+	}
+
+	public Connection(int mConnId, String mDescription, DataInputStream mIs, DataOutputStream mOs)
+	{
+		this(mConnId,mDescription,mIs,mOs,new java.util.concurrent.LinkedBlockingQueue<CommandProtocol>());
+	}
+
+	private CommandProtocol waitForAck(int cmdId)
+	{
+		Integer cmdInt = new Integer(cmdId);
+		acksMutex.add(cmdInt);
+		try {
+			synchronized (cmdInt) {				
+				cmdInt.wait();
+			}
+			acksMutex.remove(cmdInt);
+			CommandProtocol cp = acks.get(cmdInt);
+			acks.remove(cmdInt);
+			return cp;
+		} catch (InterruptedException e) {
+			return null;
+		}
 	}
 
 	public String sendCmd(CommandProtocol cp)
@@ -46,34 +73,24 @@ public class Connection extends Thread implements Runnable {
 
 			while (true)
 			{
-				CommandProtocol ack = acks.take();
-				if (ack.getCmdId()==cp.getCmdId())
+				CommandProtocol ack = waitForAck(cp.getCmdId());
+				if (ack.getAction()==CommandProtocol.ACTION_OK)
 				{
-					if (ack.getAction()==CommandProtocol.ACTION_OK)
+					if (ack.getParameters().length()>0)
 					{
-						if (ack.getParameters().length()>0)
-						{
-							return ack.getParameters();
-						}
-						else
-						{
-							return null;
-						}
+						return CommandProtocol.OK_PREFIX + ack.getParameters();
 					}
 					else
 					{
-						return ack.getParameters();
+						return null;
 					}
 				}
 				else
 				{
-					acks.put(ack);
-					Thread.sleep(250);
+					return ack.getParameters();
 				}
 			}
 		} catch (IOException e) {
-			return e.toString();
-		} catch (InterruptedException e) {
 			return e.toString();
 		}
 	}
@@ -93,9 +110,26 @@ public class Connection extends Thread implements Runnable {
 		sendCmd(new CommandProtocol(connId, cmdId, CommandProtocol.ACTION_ERROR, err));
 	}
 
-	public String getAddress()
+	public String getDescription()
 	{
-		return address;
+		return description;
+	}
+
+	public void disconnect()
+	{
+		try {
+			is.close();
+			os.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		connected = false;
+	}
+
+	public java.util.concurrent.LinkedBlockingQueue<CommandProtocol> getInQueue()
+	{
+		return in;
 	}
 
 	public void run() {
@@ -129,7 +163,18 @@ public class Connection extends Thread implements Runnable {
 				{
 					if ((cp.getAction()==CommandProtocol.ACTION_OK) || (cp.getAction()==CommandProtocol.ACTION_ERROR)) 
 					{
-						acks.put(cp);
+						for (int j=0;j<acksMutex.size();j++)
+						{
+							Integer cmdInt = acksMutex.get(j);
+							if (cmdInt.intValue()==cp.getCmdId())
+							{
+								acks.put(cmdInt ,cp);
+								synchronized (cmdInt) {
+									cmdInt.notify();
+								}
+								break;
+							}
+						}
 					}
 					else
 					{

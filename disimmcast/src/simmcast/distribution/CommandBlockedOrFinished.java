@@ -1,5 +1,7 @@
 package simmcast.distribution;
 
+import simmcast.network.Network;
+
 public class CommandBlockedOrFinished extends CommandProtocol {
 
 	private int networkId;
@@ -21,5 +23,11 @@ public class CommandBlockedOrFinished extends CommandProtocol {
 	public int getNetworkId()
 	{
 		return networkId;
+	}
+
+	public String run(Network network)
+	{
+		network.getSimulationScheduler().processBlockedOrFinished(getNetworkId());
+		return null;
 	}
 }

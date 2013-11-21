@@ -11,4 +11,9 @@ public class CommandStopSimulation extends CommandProtocol {
 	{
 		super(0, CommandProtocol.getNextCmdId(), ACTION_STOP_SIMULATION, "");
 	}
+
+	public boolean run()
+	{
+		return false;
+	}
 }

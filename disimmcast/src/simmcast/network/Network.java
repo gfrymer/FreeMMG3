@@ -149,8 +149,8 @@ public class Network extends simmcast.engine.Process {
       else
       {
   		System.out.println("Network on client mode and connecting to server on: " + serverHost);
-		client = new Client(this,serverHost);
-		if (client.connect())
+		client = new Client(this);
+		if (client.connect(serverHost))
 		{
 	  		System.out.println("Client connected succesfully");
 		}

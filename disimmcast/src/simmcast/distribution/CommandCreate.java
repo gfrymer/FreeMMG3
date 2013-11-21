@@ -1,5 +1,12 @@
 package simmcast.distribution;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+
+import simmcast.network.Network;
+import simmcast.node.Node;
+import simmcast.script.ScriptParser;
+
 public class CommandCreate extends CommandProtocol {
 
 	private int addressId;
@@ -57,5 +64,10 @@ public class CommandCreate extends CommandProtocol {
 	public String[] getArguments()
 	{
 		return arguments;
+	}
+
+	public String run(Network network)
+	{
+        return null;
 	}
 }

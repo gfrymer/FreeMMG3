@@ -1,5 +1,7 @@
 package simmcast.distribution;
 
+import simmcast.network.Network;
+
 public class CommandAddToPool extends CommandProtocol {
 
 	public CommandAddToPool(int mClientId, int mCmdId, byte mAction, String mParameter)
@@ -14,11 +16,10 @@ public class CommandAddToPool extends CommandProtocol {
 		parameters = "";
 	}
 
-	public boolean run()
+	public String run(Network network)
 	{
-/*		ProcessProxy pp = new ProcessProxy(network, cap.getClientId());
+		ProcessProxy pp = new ProcessProxy(network, getClientId());
 		network.getSimulationScheduler().addToThreadPool(pp);
-		connections[cap.getClientId()].sendOk(cap.getCmdId(),""+pp.getPid());*/
-		return true;
+		return OK_PREFIX + pp.getPid();
 	}
 }

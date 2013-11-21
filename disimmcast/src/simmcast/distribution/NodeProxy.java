@@ -24,7 +24,7 @@ public class NodeProxy implements NodeInterface {
     	networkId = network.obtainUnicastAddress();
     	label = mLabel;
     	clientId = network.getServer().createNode(networkId,label,className,arguments);
-    	clientAddress = network.getServer().getClientAddress(clientId);
+    	clientAddress = network.getServer().getClientDescription(clientId);
 	}
 
 	public NodeProxy(Network mNetwork, String mLabel, int mNetworkId) throws ClassNotFoundException

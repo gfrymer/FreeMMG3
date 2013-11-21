@@ -1,5 +1,8 @@
 package simmcast.distribution;
 
+import simmcast.engine.ProcessInterface;
+import simmcast.network.Network;
+
 public class CommandResumeProcess extends CommandProtocol {
 
 	private double newTime;
@@ -29,5 +32,19 @@ public class CommandResumeProcess extends CommandProtocol {
 	public double getNewTime()
 	{
 		return newTime;
+	}
+
+	public String run(Network network)
+	{
+		network.getSimulationScheduler().setTime(getNewTime());
+		ProcessInterface p = network.getSimulationScheduler().resumeProcess(getNetworkId());
+		if (p!=null)
+		{
+			return null;
+		}
+		else
+		{
+			return "No such process: " + getNetworkId();
+		}
 	}
 }

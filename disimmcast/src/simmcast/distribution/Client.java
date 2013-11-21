@@ -24,10 +24,8 @@ import simmcast.script.ScriptParser;
 
 public class Client implements Runnable {
 
-	private static int SERVER_PORT = 12345;
-	private Socket socketconnection;
-	private InetSocketAddress serverAddr;
 	private Connection connection;
+	private CommunicationClient commClient;
 	private boolean started;
 	private Thread thread;
 
@@ -84,28 +82,22 @@ public class Client implements Runnable {
 
    private java.util.concurrent.LinkedBlockingQueue<CommandProtocol> in;
 
-    public Client(Network network, String host)
+    public Client(Network network)
 	{
     	this.network = network;
-		serverAddr = new InetSocketAddress(host, SERVER_PORT);
-		socketconnection = new Socket();
+    	commClient = new CommunicationClientSocket();
+    	commClient.create();
 		symbols = new Hashtable();
 		started = false;
 	}
 
-	public boolean connect()
+	public boolean connect(String host)
 	{
-		try {
-			socketconnection.connect(serverAddr, 10000);
-			DataInputStream is = new DataInputStream(socketconnection.getInputStream());
-			DataOutputStream os = new DataOutputStream(socketconnection.getOutputStream());
-			System.out.println("Connected to " + serverAddr.getHostName() + ":" + serverAddr.getPort());
-			in = new java.util.concurrent.LinkedBlockingQueue<CommandProtocol>();
-			connection = new Connection(-1, serverAddr.getHostName(), in, is, os);
-			connection.start();
+		connection = commClient.connect(host);
+		if (connection!=null)
+		{
+			in = connection.getInQueue();
 			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 		return false;
 	}
@@ -128,14 +120,22 @@ public class Client implements Runnable {
     	String ok = send(cap,true);
     	if (ok!=null)
     	{
-    		try
+    		if (ok.startsWith(CommandProtocol.OK_PREFIX))
     		{
-    			int pid = Integer.parseInt(ok);
-    			process_.setPid(pid);
-    			return true;
-    		} catch (NumberFormatException ex)
+	    		try
+	    		{
+	    			int pid = Integer.parseInt(ok.substring(CommandProtocol.OK_PREFIX.length()));
+	    			process_.setPid(pid);
+	    			return true;
+	    		} catch (NumberFormatException ex)
+	    		{
+	    			System.out.println("Error addToThreadPool " + ex.toString());
+	    			return false;
+	    		}
+    		}
+    		else
     		{
-    			System.out.println("Error addToThreadPool " + ex.toString());
+    			System.out.println("Error addToThreadPool " + ok);
     			return false;
     		}
     	}
@@ -392,21 +392,21 @@ public class Client implements Runnable {
 			cmd = in.take();
 			while ((cmd.getAction()!=CommandProtocol.ACTION_STOP_SIMULATION) && (started))
 			{
-				switch (cmd.getAction())
+				String ret = cmd.run(network);
+				if (ret!=null)
 				{
-					case CommandProtocol.ACTION_RESUME_PROCESS:
-						CommandResumeProcess crp = (CommandResumeProcess) cmd;
-						network.getSimulationScheduler().setTime(crp.getNewTime());
-						ProcessInterface p = network.getSimulationScheduler().resumeProcess(crp.getNetworkId());
-						if (p!=null)
-						{
-							connection.sendOk(crp.getCmdId());
-						}
-						else
-						{
-							connection.sendError(crp.getCmdId(),"No such process: " + crp.getNetworkId());
-						}
-						break;
+					if (ret.startsWith(CommandProtocol.OK_PREFIX))
+					{
+						connection.sendOk(cmd.getCmdId(),ret.substring(CommandProtocol.OK_PREFIX.length()));
+					}
+					else
+					{
+						connection.sendError(cmd.getCmdId(),ret);
+					}
+				}
+				else
+				{
+					connection.sendOk(cmd.getCmdId());
 				}
 				cmd = in.take();
 			}

@@ -1,5 +1,7 @@
 package simmcast.distribution;
 
+import simmcast.network.Network;
+
 public class CommandActivateAt extends CommandProtocol {
 
 	private double time;
@@ -29,5 +31,11 @@ public class CommandActivateAt extends CommandProtocol {
 	public int getPid()
 	{
 		return pid;
+	}
+
+	public String run(Network network)
+	{
+		network.getSimulationScheduler().activateAt(getTime(), network.getSimulationScheduler().getFromThreadPool(getPid()));
+		return null;
 	}
 }

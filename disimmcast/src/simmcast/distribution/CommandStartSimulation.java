@@ -11,4 +11,9 @@ public class CommandStartSimulation extends CommandProtocol {
 	{
 		super(0, CommandProtocol.getNextCmdId(), ACTION_START_SIMULATION, "");
 	}
+
+	public boolean run()
+	{
+		return false;
+	}
 }

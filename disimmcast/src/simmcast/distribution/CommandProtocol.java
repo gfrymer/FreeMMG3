@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
+import simmcast.network.Network;
 import simmcast.script.InvalidFileException;
 import simmcast.script.ScriptParser;
 
@@ -137,8 +138,8 @@ public class CommandProtocol {
 		return null;
 	}
 
-	public boolean run()
+	public String run(Network network)
 	{
-		return false;
+		return null;
 	}
 }
