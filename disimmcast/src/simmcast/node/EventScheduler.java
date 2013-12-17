@@ -23,6 +23,7 @@ package simmcast.node;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import simmcast.distribution.interfaces.EventSchedulerInterface;
 import simmcast.engine.TerminatedException;
 import simmcast.network.FullQueueException;
 import simmcast.network.Packet;
@@ -71,7 +72,7 @@ public final class EventScheduler extends simmcast.engine.Process implements Eve
     *
     * @param node_ The node this schedule is responsible for.
     */
-   public EventScheduler(Node node_, /*simmcast.engine.Scheduler*/simmcast.engine.SchedulerInterface scheduler_) {
+   public EventScheduler(Node node_, /*simmcast.engine.Scheduler*/simmcast.distribution.interfaces.SchedulerInterface scheduler_) {
       simulationScheduler = scheduler_;
       node = node_;
       eventQueue = new EventQueue(this);

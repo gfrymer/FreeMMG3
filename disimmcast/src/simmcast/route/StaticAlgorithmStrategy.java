@@ -22,10 +22,10 @@ package simmcast.route;
 
 import java.util.Vector;
 
+import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.network.Network;
 import simmcast.network.Packet;
 import simmcast.node.Node;
-import simmcast.node.NodeInterface;
 import simmcast.node.RouterNode;
 
 /**

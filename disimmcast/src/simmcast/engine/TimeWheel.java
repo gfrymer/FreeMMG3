@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
+import simmcast.distribution.interfaces.ProcessInterface;
+
 /**
  * The time wheel is the data structure that describes the flow of events
  * in the simulation. It is a list of tuples describing events. Each tuple

@@ -20,11 +20,11 @@
 
 package simmcast.trace;
 
+import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.network.AbstractQueue;
 import simmcast.network.Network;
 import simmcast.network.Packet;
 import simmcast.node.Node;
-import simmcast.node.NodeInterface;
 import simmcast.node.Path;
 
 /**

@@ -23,6 +23,9 @@ package simmcast.engine;
 import java.util.Iterator;
 import java.util.ArrayList;
 
+import simmcast.distribution.interfaces.ProcessInterface;
+import simmcast.distribution.interfaces.SchedulerInterface;
+
 /**
  * Processes are the basic entities in the simulation.
  * They are built on top of Java threads and provide a Java-like
@@ -120,9 +123,8 @@ abstract public class Process extends Thread implements ProcessInterface {
 			item.wakeUpProcess();
 		}
 		joinList = new ArrayList<Process>();
-		// TODO: why is this commented? Is this correct? Check.
-		// simulationScheduler.removeFromThreadPool(this);
 		simulationScheduler.processBlockedOrFinished(getPid());
+		simulationScheduler.removeFromThreadPool(this);
 		/*Process next = simulationScheduler.nextToResume();
 		if (next != null) {
 			next.resumeProcess();

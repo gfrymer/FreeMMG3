@@ -20,9 +20,9 @@
 
 package simmcast.group;
 
+import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.node.HostNode;
 import simmcast.node.Node;
-import simmcast.node.NodeInterface;
 
 /**
  * A RouterGroup is an abstract entity, which can be understood as

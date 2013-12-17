@@ -22,6 +22,9 @@ package simmcast.group;
 
 import java.util.Hashtable;
 
+import simmcast.distribution.interfaces.GroupInterface;
+import simmcast.distribution.interfaces.GroupTableInterface;
+
 /**
  * A specialization of Hashtable to handle Group objects.
  * This is a helper object used by the simulator's kernel.

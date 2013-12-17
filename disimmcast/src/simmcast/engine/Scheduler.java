@@ -24,6 +24,9 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import simmcast.distribution.interfaces.ProcessInterface;
+import simmcast.distribution.interfaces.SchedulerInterface;
+
 /**
  * This object is the core of the simulation engine.
  * It is internally used by the simulator. 
@@ -222,10 +225,13 @@ public class Scheduler extends Thread implements SchedulerInterface {
 			while (sameTime)
 			{
 				ProcessInterface next = threadPool.get(event.pid);
-				synchronized (running) {
-					running.add(next);
+				if (next!=null)
+				{
+					synchronized (running) {
+						running.add(next);
+					}
+					next.resumeProcess();
 				}
-				next.resumeProcess();
 				event = timeWheel.peekFirst();
 				if (event!=null)
 				{
@@ -284,7 +290,7 @@ public class Scheduler extends Thread implements SchedulerInterface {
 	 *
 	 * @param process_ The process to be removed.
 	 */
-	void removeFromThreadPool(ProcessInterface process_) {
+	public void removeFromThreadPool(ProcessInterface process_) {
 		threadPool.remove(process_.getPid());
 	}
 

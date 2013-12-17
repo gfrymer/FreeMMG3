@@ -1,5 +1,13 @@
 package simmcast.network;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
+import com.google.gson.JsonObject;
+
+import simmcast.distribution.CloneOnClient;
+import simmcast.distribution.command.CommandProtocol;
+
 
 /**
  * Packets are the unit of communication between any two or
@@ -13,7 +21,7 @@ package simmcast.network;
  *
  * @author Hisham H. Muhammad
  */
-public class Packet extends Queueable implements Cloneable {
+public class Packet extends Queueable implements Cloneable, CloneOnClient {
 
    // *****************************************************
    // ATTRIBUTES
@@ -324,5 +332,53 @@ public class Packet extends Queueable implements Cloneable {
             +" to "+to
             +" (data "+dataTrace+"))";
    }
+
+	public final static String FROM = "from";
+	public final static String TO = "to";
+	public final static String TYPE = "type";
+	public final static String SIZE = "size";
+	public final static String SEQUENCE = "seq";
+	public final static String CLASS = "class";
+	public final static String DATA = "data";
+
+	@Override
+	public String getConstructorParameters() {
+		JsonObject gson = new JsonObject();
+		gson.addProperty(FROM, from);
+		gson.addProperty(TO, to);
+		gson.addProperty(TYPE, type.name);
+		gson.addProperty(SIZE, size);
+		gson.addProperty(SEQUENCE, seq);
+		gson.addProperty(CLASS, data.getClass().getName());
+		gson.addProperty(DATA, data.toString());
+		return gson.toString();
+	}
+
+	public static Packet fromJson(JsonObject jo)
+	{
+		int from = jo.get(FROM).getAsInt();
+		int to = jo.get(TO).getAsInt();
+		String type = jo.get(TYPE).getAsString();
+		int size = jo.get(SIZE).getAsInt();
+		long sequence = jo.get(SEQUENCE).getAsLong();
+		String dataClassName = jo.get(CLASS).getAsString();
+		try {
+			Class r = Class.forName(dataClassName);
+			Constructor[] c = r.getConstructors();
+			Object n = c[0].newInstance(jo.get(DATA).getAsString());
+			return new Packet(from, to, new PacketType(type), size, n);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 }

@@ -20,7 +20,9 @@
 
 package simmcast.node;
 
-import simmcast.engine.SchedulerInterface;
+import simmcast.distribution.interfaces.EventSchedulerInterface;
+import simmcast.distribution.interfaces.NodeInterface;
+import simmcast.distribution.interfaces.SchedulerInterface;
 import simmcast.network.EmptyQueueException;
 import simmcast.network.InvalidIdentifierException;
 import simmcast.network.MultiSenderPacketQueue;
@@ -139,7 +141,7 @@ public abstract class Node implements NodeInterface {
    // Should it be up here at Node or at a subclass?
    protected int[] neighbors = new int[0];
 
-   /*simmcast.engine.Scheduler*/ simmcast.engine.SchedulerInterface simulationScheduler;
+   /*simmcast.engine.Scheduler*/ simmcast.distribution.interfaces.SchedulerInterface simulationScheduler;
 
    // *****************************************************
    // GETTERS/SETTERS
@@ -236,7 +238,7 @@ public abstract class Node implements NodeInterface {
     * @param name_ The node's name as given by the user in
     * the configuration file.
     */
-   public void initialize(/*simmcast.engine.Scheduler*/simmcast.engine.SchedulerInterface scheduler_, Network network_, String name_) {
+   public void initialize(/*simmcast.engine.Scheduler*/simmcast.distribution.interfaces.SchedulerInterface scheduler_, Network network_, String name_) {
       simulationScheduler = scheduler_;
       network = network_;
       name = name_;

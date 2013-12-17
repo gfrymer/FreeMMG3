@@ -22,8 +22,9 @@ package simmcast.group;
 
 import java.util.Vector;
 
+import simmcast.distribution.interfaces.GroupInterface;
+import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.node.Node;
-import simmcast.node.NodeInterface;
 
 /**
  * Objects of this class contain a series of network identifiers,

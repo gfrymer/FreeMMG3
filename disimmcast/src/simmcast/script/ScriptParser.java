@@ -38,12 +38,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import simmcast.distribution.CloneOnClient;
-import simmcast.distribution.NodeProxy;
+import simmcast.distribution.interfaces.NodeInterface;
+import simmcast.distribution.proxies.NodeProxy;
 import simmcast.group.Group;
 import simmcast.group.GroupTable;
 import simmcast.network.Network;
 import simmcast.node.Node;
-import simmcast.node.NodeInterface;
 import simmcast.node.NodeVector;
 
 /**
@@ -236,7 +236,7 @@ public class ScriptParser {
          //streamClass = Class.forName("arjuna.JavaSim.Distributions.RandomStream");
          stringClass = Class.forName("java.lang.String");
          cloneOnClientInterface = Class.forName("simmcast.distribution.CloneOnClient");
-         nodeInterface = Class.forName("simmcast.node.NodeInterface");
+         nodeInterface = Class.forName("simmcast.distribution.interfaces.NodeInterface");
 
          String line;
          BufferedReader in = new BufferedReader(new FileReader(filePath_));
@@ -764,7 +764,7 @@ public class ScriptParser {
         	}
         	else if (objects_[i] instanceof NodeProxy)
         	{
-        		argument = "{" + arguments_[i] + "," + ((NodeProxy) objects_[i]).getNetworkId() + "}"; 
+        		argument = "{" + arguments_[i] + "," + ((NodeProxy) objects_[i]).getNetworkId() + "," + ((NodeProxy) objects_[i]).getClientId() + "," + ((NodeProxy) objects_[i]).getClientDescription() + "}"; 
         	}
         	else if (objects_[i].getClass().isArray())
         	{

@@ -22,6 +22,7 @@ package simmcast.node;
 
 import java.util.Random;
 
+import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.network.FullQueueException;
 import simmcast.network.Network;
 import simmcast.network.Packet;

@@ -23,6 +23,8 @@ package simmcast.node;
 import java.util.Iterator;
 import java.util.Vector;
 
+import simmcast.distribution.interfaces.NodeInterface;
+
 /**
  * This is a specialization of the Vector class,
  * in order to reduce type-casting and allow for

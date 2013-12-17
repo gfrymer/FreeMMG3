@@ -5,19 +5,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Random;
 
-import simmcast.distribution.Client;
-import simmcast.distribution.GroupTableProxy;
-import simmcast.distribution.NodeProxy;
-import simmcast.distribution.ProcessProxy;
-import simmcast.distribution.Server;
-import simmcast.engine.SchedulerInterface;
+import simmcast.distribution.Worker;
+import simmcast.distribution.Manager;
+import simmcast.distribution.interfaces.GroupInterface;
+import simmcast.distribution.interfaces.GroupTableInterface;
+import simmcast.distribution.interfaces.NodeInterface;
+import simmcast.distribution.interfaces.SchedulerInterface;
+import simmcast.distribution.proxies.GroupTableProxy;
+import simmcast.distribution.proxies.NodeProxy;
+import simmcast.distribution.proxies.ProcessProxy;
 import simmcast.engine.TerminatedException;
 import simmcast.group.Group;
-import simmcast.group.GroupInterface;
 import simmcast.group.GroupTable;
-import simmcast.group.GroupTableInterface;
 import simmcast.node.Node;
-import simmcast.node.NodeInterface;
 import simmcast.node.NodeVector;
 import simmcast.script.InvalidFileException;
 import simmcast.script.ScriptParser;
@@ -107,9 +107,9 @@ public class Network extends simmcast.engine.Process {
     */
    protected String[] arguments;
 
-   private boolean isServer;
-   private Server server;
-   private Client client;
+   private boolean isManager;
+   private Manager manager;
+   private Worker worker;
    /**
     * TODO
     */
@@ -124,14 +124,14 @@ public class Network extends simmcast.engine.Process {
     * for the entire simulation run. There must be only
     * one object of this class per simulation.
     */
-   public Network(String serverHost) {
+   public Network(String managerHost) {
       setName("["+getClass()+"]");
-      isServer = serverHost==null;
+      isManager = managerHost==null;
       tracer = new NullTraceGenerator();
-      if (isServer)
+      if (isManager)
       {
-		server = new Server(this);
-		server.listenForConnections();
+		manager = new Manager(this);
+		manager.listenForConnections();
 		System.out.println("Network on server mode and listening for client connections");
 		System.out.println("Press ENTER to start simulation");
 	    BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -141,20 +141,20 @@ public class Network extends simmcast.engine.Process {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	    server.stopListening();
+	    manager.stopListening();
 	    setScheduler(new simmcast.engine.Scheduler());
 	    nextUnicastAddress = 1;
 	    nextMulticastAddress = MULTICAST_ADDRESS;
       }
       else
       {
-  		System.out.println("Network on client mode and connecting to server on: " + serverHost);
-		client = new Client(this);
-		if (client.connect(serverHost))
+  		System.out.println("Network on client mode and connecting to server on: " + managerHost);
+		worker = new Worker(this);
+		if (worker.connect(managerHost))
 		{
 	  		System.out.println("Client connected succesfully");
 		}
-	    setScheduler(new simmcast.distribution.SchedulerProxy(this));
+	    setScheduler(new simmcast.distribution.proxies.SchedulerProxy(this));
       }
    }
 
@@ -173,9 +173,9 @@ public class Network extends simmcast.engine.Process {
    /**
     * Returns the server object
     */
-   public Server getServer()
+   public Manager getServer()
    {
-	   return server;
+	   return manager;
    }
 
    /**
@@ -189,9 +189,9 @@ public class Network extends simmcast.engine.Process {
    /**
     * Returns the client object
     */
-   public Client getClient()
+   public Worker getClient()
    {
-	   return client;
+	   return worker;
    }
 
    /**
@@ -203,7 +203,7 @@ public class Network extends simmcast.engine.Process {
     */
    public synchronized void runSimulation(String inputFile_) {
        randomGenerator = new Random(System.currentTimeMillis());
-	   if (isServer)
+	   if (isManager)
 	   {
 	      try {
 	         ScriptParser parser = new ScriptParser(this, inputFile_, arguments);
@@ -217,7 +217,7 @@ public class Network extends simmcast.engine.Process {
 	   else
 	   {
 		   try {
-			   client.createNodes();
+			   worker.createNodes();
 			   groups = new GroupTableProxy(this);
 		   } catch (Exception e) {
 			   e.printStackTrace();
@@ -226,7 +226,7 @@ public class Network extends simmcast.engine.Process {
       running = true;
       tracer.setNetwork(this);
 
-      if (isServer)
+      if (isManager)
       {
     	  /* THIS IS TO SET NETWORK PROCESS REAL PID */
     	  ProcessProxy temp = new ProcessProxy(this, -1); 
@@ -234,7 +234,7 @@ public class Network extends simmcast.engine.Process {
     	  temp = null;
     	  /* --------------------------------------- */
     	  startProcess();
-	      server.startSimulation();
+	      manager.startSimulation();
       }
       else
       {
@@ -244,7 +244,7 @@ public class Network extends simmcast.engine.Process {
           for (int i=0; i<nodes.size(); i++)
              nodes.nodeAt(i).begin();
 
-          client.startSimulation();
+          worker.startSimulation();
       }
       //--------------------------------------------------------
 
@@ -256,10 +256,14 @@ public class Network extends simmcast.engine.Process {
          join();
       } catch (Exception e) { System.out.println("Error at join: "+e); }
       
-      if (!isServer)
+      if (isManager)
+      {
+    	  manager.stopSimulation();
+      }
+      else
       {
 	      for (int i=0; i<nodes.size(); i++)
-	         nodes.nodeAt(i).end();
+		         nodes.nodeAt(i).end();    	  
       }
       tracer.finish();
    }

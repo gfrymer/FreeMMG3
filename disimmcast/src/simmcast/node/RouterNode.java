@@ -20,6 +20,7 @@
 
 package simmcast.node;
 
+import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.network.Network;
 import simmcast.network.NetworkPacket;
 import simmcast.network.Packet;
