@@ -9,7 +9,7 @@ new FIXED_DELAY simmcast.stream.FixedStream !DELAY
 macro !QUEUESIZE "50"
 macro !NO_LOSS "0.00"
 macro !WITH_LOSS "0.1"
-macro !N "5"
+macro !N "30"
 macro !LOSS_CONDITIONS "!NO_LOSS"
 
 new tracer simmcast.trace.SimmcastTraceGenerator
@@ -25,12 +25,12 @@ tracer setFile ../outputs/trace-no-loss.txt
 ##########################################
 # create nodes containing user logic (they are threads at nodes)
 new SOURCE SourceNode
-new RECEIVER[1..!N] SinkNode
+new RECEIVER[2..!N] SinkNode
 
 ############################################
 # establish bidirectional links (pairs of paths)
 SOURCE              addPath RECEIVER[2..!N]     !QUEUESIZE !BANDWIDTH FIXED_DELAY !LOSS_CONDITIONS
-RECEIVER[1..!N]     addPath SOURCE              !QUEUESIZE !BANDWIDTH FIXED_DELAY !LOSS_CONDITIONS
+RECEIVER[2..!N]     addPath SOURCE              !QUEUESIZE !BANDWIDTH FIXED_DELAY !LOSS_CONDITIONS
 
 ########################################
 # creates a group
@@ -41,7 +41,7 @@ SOURCE_TO_RECEIVERS_GROUP join RECEIVER[2..!N]
 # set parameters required for source and receivers
 #SOURCE          setDestinationGroup SOURCE_TO_RECEIVERS_GROUP   # set destination for the source, i.e., group that has receivers
 SOURCE          setDestinationGroupIds SOURCE_TO_RECEIVERS_GROUP:getNetworkId SOURCE_TO_RECEIVERS_GROUP:getNetworkIds
-RECEIVER[1..!N] setSourceId         SOURCE                      # set the destination for receivers (that is, source)
+RECEIVER[2..!N] setSourceId         SOURCE                      # set the destination for receivers (that is, source)
 SOURCE          setTimerLength 100ms                              # must be sufficiently large to prevent timeouts
 SOURCE          setNumPktsToSend 1                             # defines simulation duration
 SOURCE          setNumEndingPackets 1                           # how many termination packets source must send before quiting

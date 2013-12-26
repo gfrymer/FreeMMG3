@@ -1,5 +1,7 @@
 package simmcast.distribution.command;
 
+import simmcast.network.Network;
+
 public class CommandStopSimulation extends CommandProtocol {
 
 	public CommandStopSimulation(int mCmdId, byte mAction, String mParameter)
@@ -12,8 +14,9 @@ public class CommandStopSimulation extends CommandProtocol {
 		super(0, CommandProtocol.getNextCmdId(), ACTION_STOP_SIMULATION, "");
 	}
 
-	public boolean run()
+	public String run(Network network)
 	{
-		return false;
+		network.terminateSimulation();
+		return null;
 	}
 }

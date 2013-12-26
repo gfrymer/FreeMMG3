@@ -1,5 +1,6 @@
 package simmcast.distribution.proxies;
 
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -112,9 +113,22 @@ public class SchedulerProxy implements SchedulerInterface {
 	}
 
 	public void removeFromThreadPool(ProcessInterface process_) {
+		if (!started)
+			return;
 		if (network.getClient().removeFromPool(process_.getPid()))
 		{
 			threadPool.remove(process_.getPid());
 		}
+	}
+
+	@Override
+	public void interrupt()
+	{
+		started = false;
+		for (Iterator<ProcessInterface> iter = threadPool.values().iterator(); iter.hasNext();) {
+			ProcessInterface walk = iter.next();
+			walk.interrupt();
+		}
+		threadPool.clear();
 	}
 }

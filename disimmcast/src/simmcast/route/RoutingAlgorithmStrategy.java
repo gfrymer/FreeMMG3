@@ -20,6 +20,7 @@
 
 package simmcast.route;
 
+import simmcast.distribution.interfaces.RouterNodeInterface;
 import simmcast.network.NetworkPacket;
 import simmcast.network.Packet;
 import simmcast.node.RouterNode;
@@ -64,7 +65,7 @@ public abstract class RoutingAlgorithmStrategy {
     * The client thread will be a thread from this node.
     */
 
-   RouterNode node;
+   RouterNodeInterface node;
 
    // *****************************************************
    // ATTRIBUTES
@@ -76,7 +77,7 @@ public abstract class RoutingAlgorithmStrategy {
     * by this strategy.
     */
 
-   public RoutingAlgorithmStrategy(RouterNode node_) {
+   public RoutingAlgorithmStrategy(RouterNodeInterface node_) {
       node = node_;
       thread = node_.getClientThread();
    }

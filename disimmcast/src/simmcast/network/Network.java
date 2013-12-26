@@ -113,7 +113,7 @@ public class Network extends simmcast.engine.Process {
    /**
     * TODO
     */
-   static private Object mutex = new Object();
+   Object mtx = new Object();
 
    // *****************************************************
    // CONSTRUCTORS
@@ -244,6 +244,7 @@ public class Network extends simmcast.engine.Process {
           for (int i=0; i<nodes.size(); i++)
              nodes.nodeAt(i).begin();
 
+          start();
           worker.startSimulation();
       }
       //--------------------------------------------------------
@@ -255,15 +256,16 @@ public class Network extends simmcast.engine.Process {
          wait();
          join();
       } catch (Exception e) { System.out.println("Error at join: "+e); }
-      
+
+      simulationScheduler.interrupt();
       if (isManager)
       {
-    	  manager.stopSimulation();
+    	  //manager.stopSimulation();
       }
       else
       {
 	      for (int i=0; i<nodes.size(); i++)
-		         nodes.nodeAt(i).end();    	  
+		         nodes.nodeAt(i).end();
       }
       tracer.finish();
    }
@@ -278,6 +280,21 @@ public class Network extends simmcast.engine.Process {
       }
    }
 
+   public void run() {
+	   if (isManager)
+	   {
+		   super.run();
+	   }
+	   else
+	   {
+		   synchronized (mtx) {
+			   try {
+				   mtx.wait();
+			   } catch (InterruptedException e) {
+			   }
+		   }
+	   }
+   }
    /**
     * Instructs the process to exit the simulation loop.
     * This can be forcibly called, but it is usually called
@@ -288,7 +305,19 @@ public class Network extends simmcast.engine.Process {
       if (running == true) {
          running = false;
       }
-      this.interrupt();
+      else
+      {
+    	  return;
+      }
+      if (isManager)
+      {
+    	  manager.stopSimulation();
+      }
+      else
+      {
+    	  worker.stopSimulation();
+      }
+	  interrupt();
    }
 
    // *****************************************************

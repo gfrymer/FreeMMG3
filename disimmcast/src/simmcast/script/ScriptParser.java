@@ -39,7 +39,9 @@ import java.util.regex.Pattern;
 
 import simmcast.distribution.CloneOnClient;
 import simmcast.distribution.interfaces.NodeInterface;
+import simmcast.distribution.interfaces.RouterNodeInterface;
 import simmcast.distribution.proxies.NodeProxy;
+import simmcast.distribution.proxies.RouterNodeProxy;
 import simmcast.group.Group;
 import simmcast.group.GroupTable;
 import simmcast.network.Network;
@@ -125,6 +127,8 @@ public class ScriptParser {
     */
    private Class nodeClass;
    private Class nodeInterface;
+   private Class routerNodeClass;
+   private Class routerNodeInterface;
 
    /**
     * This is a handle to the reflected Class object of the
@@ -237,6 +241,8 @@ public class ScriptParser {
          stringClass = Class.forName("java.lang.String");
          cloneOnClientInterface = Class.forName("simmcast.distribution.CloneOnClient");
          nodeInterface = Class.forName("simmcast.distribution.interfaces.NodeInterface");
+         routerNodeClass = Class.forName("simmcast.node.RouterNode");
+         routerNodeInterface = Class.forName("simmcast.distribution.interfaces.RouterNodeInterface");
 
          String line;
          BufferedReader in = new BufferedReader(new FileReader(filePath_));
@@ -453,8 +459,15 @@ public class ScriptParser {
 
          // Special case initializations
          if (nodeClass.isAssignableFrom(classType)) {
-        	NodeProxy nodeProxy = new NodeProxy(network,label,className,parseObjectArgs(generateArguments(constructor.getParameterTypes(), arguments),arguments));
-        	nodes.add(nodeProxy);
+         	NodeProxy nodeProxy;
+        	if (routerNodeClass.isAssignableFrom(classType)) {
+        		nodeProxy = new RouterNodeProxy(network,label,className,parseObjectArgs(generateArguments(constructor.getParameterTypes(), arguments),arguments));
+        	}
+        	else
+        	{
+        		nodeProxy = new NodeProxy(network,label,className,parseObjectArgs(generateArguments(constructor.getParameterTypes(), arguments),arguments));        		
+        	}
+         	nodes.add(nodeProxy);
         	network.tracer.node(nodeProxy);
         	newObject = nodeProxy;
             /*Node node = (Node)newObject;

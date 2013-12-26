@@ -11,6 +11,7 @@ public interface SchedulerInterface {
 	public void addToThreadPool(ProcessInterface process_);
 	public void removeFromThreadPool(ProcessInterface process_);
 	public void start();
+	public void interrupt();
 	public ProcessInterface resumeProcess(int pid);
 	public ProcessInterface getFromThreadPool(int pid);
 	public Vector<ProcessInterface> currentProcesses();

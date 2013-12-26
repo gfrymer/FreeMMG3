@@ -25,6 +25,7 @@ public class CommandTerminateProcess extends CommandProtocol {
 	{
 		super(0, CommandProtocol.getNextCmdId(), ACTION_TERMINATE_PROCESS, "");
 		JsonObject gson = new JsonObject();
+		networkId = mNetworkId;
 		gson.addProperty(NETWORK_ID, networkId);
 		parameters = gson.toString();
 	}

@@ -23,6 +23,7 @@ package simmcast.route;
 import java.util.Vector;
 
 import simmcast.distribution.interfaces.NodeInterface;
+import simmcast.distribution.interfaces.RouterNodeInterface;
 import simmcast.network.Network;
 import simmcast.network.Packet;
 import simmcast.node.Node;
@@ -59,7 +60,7 @@ public class StaticAlgorithmStrategy extends RoutingAlgorithmStrategy {
     * the entire network.
     */
 
-   public StaticAlgorithmStrategy(RouterNode node_, Network network_) {
+   public StaticAlgorithmStrategy(RouterNodeInterface node_, Network network_) {
       super(node_);
       network = network_;
    }

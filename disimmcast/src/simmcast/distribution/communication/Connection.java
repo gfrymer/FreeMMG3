@@ -26,6 +26,7 @@ public class Connection extends Thread implements Runnable {
 	private DataInputStream is;
 	private DataInputStream is2;
 	private DataOutputStream os;
+	private Thread t2;
 	private CommunicationOutputStream os2;
 	private boolean connected;
 	private int connId;
@@ -146,7 +147,7 @@ public class Connection extends Thread implements Runnable {
 				}
 			}
 
-			if ((cp.getAction()==CommandProtocol.ACTION_OK) || (cp.getAction()==CommandProtocol.ACTION_ERROR))
+			if ((cp.getAction()==CommandProtocol.ACTION_OK) || (cp.getAction()==CommandProtocol.ACTION_ERROR) || (cp.getAction()==CommandProtocol.ACTION_STOP_SIMULATION))
 			{
 				return "";
 			}
@@ -154,6 +155,10 @@ public class Connection extends Thread implements Runnable {
 			while (true)
 			{
 				CommandProtocol ack = waitForAck(cp.getCmdId());
+				if (ack==null)
+				{
+					return "Interrupted exception";
+				}
 				if (ack.getAction()==CommandProtocol.ACTION_OK)
 				{
 					if (ack.getParameters().length()>0)
@@ -217,14 +222,20 @@ public class Connection extends Thread implements Runnable {
 
 	public void disconnect()
 	{
+		connected = false;
 		try {
+			interrupt();
 			is.close();
 			os.close();
+			if (is2!=null)
+			{
+				is2.close();
+				t2.interrupt();
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		connected = false;
 	}
 
 	public java.util.concurrent.LinkedBlockingQueue<CommandProtocol> getInQueue()
@@ -235,7 +246,7 @@ public class Connection extends Thread implements Runnable {
 	public void run() {
 		if (is2!=null)
 		{
-			Thread t2 = new Thread(new Runnable() {
+			t2 = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					while (connected)

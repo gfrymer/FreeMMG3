@@ -27,6 +27,7 @@ public class CommandRemoveFromPool extends CommandProtocol {
 	{
 		super(0, CommandProtocol.getNextCmdId(), ACTION_REMOVE_FROM_POOL, "");
 		JsonObject gson = new JsonObject();
+		networkId = mNetworkId;
 		gson.addProperty(NETWORK_ID, networkId);
 		parameters = gson.toString();
 	}

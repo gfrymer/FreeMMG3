@@ -20,6 +20,7 @@
 
 package simmcast.engine;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -136,6 +137,9 @@ public class Scheduler extends Thread implements SchedulerInterface {
 							}
 						}
 					} catch (InterruptedException e) {
+						started = false;
+						terminate();
+						return;
 					}
 				}
 			}
@@ -168,6 +172,7 @@ public class Scheduler extends Thread implements SchedulerInterface {
 			ProcessInterface walk = iter.next();
 			walk.interrupt();
 		}
+		threadPool.clear();
 	}
 
 	// **************************************************
@@ -217,39 +222,53 @@ public class Scheduler extends Thread implements SchedulerInterface {
 	 * events remaining in the timewheel.
 	 */   
 	private boolean /*Process*/ resumeAllProcessesOnTime() {
+		ArrayList<ProcessInterface> willResume = new ArrayList<ProcessInterface>();
 		Event event;
-		event = timeWheel.removeFirst();
-		if (event != null) {
-			now = event.time;
-			boolean sameTime = true;
-			while (sameTime)
-			{
-				ProcessInterface next = threadPool.get(event.pid);
-				if (next!=null)
+		synchronized (timeWheel) {
+			event = timeWheel.removeFirst();
+			if (event != null) {
+				now = event.time;
+				boolean sameTime = true;
+				while (sameTime)
 				{
-					synchronized (running) {
-						running.add(next);
-					}
-					next.resumeProcess();
-				}
-				event = timeWheel.peekFirst();
-				if (event!=null)
-				{
-					sameTime = (event.time == now);
-					if (sameTime)
+					ProcessInterface next = threadPool.get(event.pid);
+					if (next!=null)
 					{
-						event = timeWheel.removeFirst();
+						willResume.add(next);
+					}
+					event = timeWheel.peekFirst();
+					if (event!=null)
+					{
+						sameTime = (event.time == now);
+						if (sameTime)
+						{
+							event = timeWheel.removeFirst();
+						}
+					}
+					else
+					{
+						sameTime = false;
 					}
 				}
-				else
-				{
-					sameTime = false;
+			}
+		}
+		if (willResume.size()>0)
+		{
+			Iterator<ProcessInterface> pi = willResume.iterator();
+			while (pi.hasNext())
+			{
+				ProcessInterface next = pi.next();
+				synchronized (running) {
+					running.add(next);
 				}
+				next.resumeProcess();
 			}
 			return true;
 		}
 		else
+		{
 			return false;
+		}
 	}
 
 	/**
@@ -260,7 +279,10 @@ public class Scheduler extends Thread implements SchedulerInterface {
 	 * @param process_ The process to be executed.
 	 */
 	public void activateAt(double relativeTime_, ProcessInterface process_) {
-		timeWheel.insertAt(now + relativeTime_, process_);
+		synchronized (timeWheel)
+		{
+			timeWheel.insertAt(now + relativeTime_, process_);
+		}
 	}
 
 	/**
@@ -269,7 +291,10 @@ public class Scheduler extends Thread implements SchedulerInterface {
 	 * @param process_ The process to be executed immediately.
 	 */
 	public void activateNow(ProcessInterface process_) {
-		timeWheel.insertAt(now, process_);
+		synchronized (timeWheel)
+		{
+			timeWheel.insertAt(now, process_);
+		}
 	}
 
 	// **************************************************
@@ -291,6 +316,8 @@ public class Scheduler extends Thread implements SchedulerInterface {
 	 * @param process_ The process to be removed.
 	 */
 	public void removeFromThreadPool(ProcessInterface process_) {
+		if (!started)
+			return;
 		threadPool.remove(process_.getPid());
 	}
 

@@ -141,7 +141,8 @@ public class UDPInputStream extends InputStream {
   *****************************************************************
 */
     public void close() throws IOException {
-  dsock.close();
+  if (dsock!=null)
+	  dsock.close();
   dsock = null;
   ddata = null;
   packSize = 0;

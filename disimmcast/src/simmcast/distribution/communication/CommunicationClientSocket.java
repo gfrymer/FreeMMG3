@@ -55,8 +55,8 @@ public class CommunicationClientSocket implements CommunicationClient, Communica
 	}
 
 	@Override
-	public String getDescription() {
-		return socketconnection.getLocalAddress() + ":" + socketconnection.getLocalPort();
+	public String getDescription(boolean full) {
+		return socketconnection.getInetAddress().getHostAddress() + ((full) ? (":" + socketconnection.getLocalPort()) : "");
 	}
 
 	@Override

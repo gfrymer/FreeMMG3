@@ -21,6 +21,7 @@ import simmcast.distribution.command.CommandInvoke;
 import simmcast.distribution.command.CommandPacketArrival;
 import simmcast.distribution.command.CommandProtocol;
 import simmcast.distribution.command.CommandRemoveFromPool;
+import simmcast.distribution.command.CommandStopSimulation;
 import simmcast.distribution.communication.CommunicationClient;
 import simmcast.distribution.communication.CommunicationClientSocket;
 import simmcast.distribution.communication.Connection;
@@ -136,12 +137,20 @@ public class Worker implements Runnable {
 
     public String sendPacket(String where, double relativeTime_, Packet p_)
     {
-    	/*if (where is on my machine then put it directly on the queue)
+    	if (where.equals(commClient.getDescription(false)))
     	{
-    		
+    		CommandPacketArrival cpa = new CommandPacketArrival(where, relativeTime_, p_);
+    		try {
+				in.put(cpa);
+	    		return null;
+			} catch (InterruptedException e) {
+	    		return e.toString();
+			}
     	}
-    	else*/
-    	return connection.sendPacket(where, relativeTime_, p_);
+    	else
+    	{
+    		return connection.sendPacket(where, relativeTime_, p_);
+    	}
     }
 
     public boolean addToThreadPool(ProcessInterface process_) 
@@ -283,6 +292,12 @@ public class Worker implements Runnable {
     	thread.start();
     }
 
+    public boolean stopSimulation()
+    {
+    	CommandStopSimulation css = new CommandStopSimulation();
+    	return send(css)==null;
+    }
+
    private Object[] generateArguments(Class[] classTypes_, String[] passedArguments_) throws Exception {
 	      String argument = null;
 	      try {
@@ -419,9 +434,10 @@ public class Worker implements Runnable {
    	public void run() {
 		CommandProtocol cmd;
 		try {
-			cmd = in.take();
+			cmd = new CommandProtocol(0, 0, (byte)0, "");
 			while ((cmd.getAction()!=CommandProtocol.ACTION_STOP_SIMULATION) && (started))
 			{
+				cmd = in.take();
 				String ret = cmd.run(network);
 				if (ret!=null)
 				{
@@ -444,8 +460,7 @@ public class Worker implements Runnable {
 					{
 						connection.sendOk(cmd.getCmdId());
 					}
-				}					
-				cmd = in.take();
+				}
 			}
 		} catch (InterruptedException e) {
 		}

@@ -39,7 +39,7 @@ public class Manager implements Runnable {
     private Vector<Connection> connections;
     private CommunicationServer commServer;
     private int actualWorker;
-
+ 
     private java.util.concurrent.LinkedBlockingQueue<CommandProtocol> in;
 
     private boolean connected;
@@ -170,6 +170,7 @@ public class Manager implements Runnable {
 
     public boolean stopSimulation()
     {
+    	connected = false;
     	CommandStopSimulation ss = new CommandStopSimulation();
     	for (int i=0;i<connections.size();i++)
     	{
@@ -179,12 +180,14 @@ public class Manager implements Runnable {
     		}
     		else
     		{
-    			System.err.println(err);
-    			return false;
+    			if (err.length()>0)
+    			{
+	    			System.err.println(err);
+	    			return false;
+    			}
     		}
     		connections.get(i).disconnect();
     	}
-    	connected = false;
     	listenThread.interrupt();
     	return true;
     }
@@ -222,7 +225,7 @@ public class Manager implements Runnable {
 				CommandProtocol cp = in.take();
 				analyzeCmd(cp);
 			} catch (InterruptedException e) {
-			}			
+			}
 		}
 	}
 
