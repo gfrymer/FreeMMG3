@@ -18,6 +18,7 @@ public class CommunicationClientSocket implements CommunicationClient, Communica
 	private Socket socketconnection;
 	private InetSocketAddress serverAddr;
 	private Connection connection;
+	private String thisAddress;
 
 	@Override
 	public boolean create() {
@@ -33,7 +34,9 @@ public class CommunicationClientSocket implements CommunicationClient, Communica
 			DataInputStream is = new DataInputStream(socketconnection.getInputStream());
 			DataOutputStream os = new DataOutputStream(socketconnection.getOutputStream());
 			System.out.println("Connected to " + serverAddr.getHostName() + ":" + serverAddr.getPort());
-			DataInputStream udpis = new DataInputStream(new UDPInputStream(socketconnection.getInetAddress().getHostName(),CommunicationServerSocket.SERVER_PORT));
+
+			thisAddress = CommunicationServerSocket.getFirstAddress().getHostAddress();
+			DataInputStream udpis = new DataInputStream(new UDPInputStream(thisAddress,CommunicationServerSocket.SERVER_PORT));
 			connection = new Connection(-1, /*socketconnection.getLocalAddress() + ":" + socketconnection.getLocalPort()*/ socketconnection.getLocalAddress().getHostName(), is, os, new java.util.concurrent.LinkedBlockingQueue<CommandProtocol>(), udpis, this);
 			connection.start();
 			return connection;
@@ -56,7 +59,7 @@ public class CommunicationClientSocket implements CommunicationClient, Communica
 
 	@Override
 	public String getDescription(boolean full) {
-		return socketconnection.getInetAddress().getHostAddress() + ((full) ? (":" + socketconnection.getLocalPort()) : "");
+		return thisAddress + ((full) ? (":" + socketconnection.getLocalPort()) : "");
 	}
 
 	@Override

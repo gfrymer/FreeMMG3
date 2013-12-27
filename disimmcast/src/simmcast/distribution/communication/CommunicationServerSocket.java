@@ -3,12 +3,17 @@ package simmcast.distribution.communication;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import simmcast.distribution.command.CommandProtocol;
 
@@ -18,13 +23,43 @@ public class CommunicationServerSocket implements CommunicationServer {
     private ServerSocket server;
     private Vector<Socket> socketconnections;
 
+    private static final String IPV4_BASIC_PATTERN_STRING =
+            "(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" + // initial 3 fields, 0-255 followed by .
+             "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])"; // final field, 0-255
+
+    private static final Pattern IPV4_PATTERN =
+        Pattern.compile("^" + IPV4_BASIC_PATTERN_STRING + "$");
+
+    public static InetAddress getFirstAddress()
+    {
+    	Enumeration<NetworkInterface> nets;
+		try {
+			nets = NetworkInterface.getNetworkInterfaces();
+	        for (NetworkInterface netint : Collections.list(nets))
+	        {
+				Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+		        for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+		        	if (inetAddress.isLoopbackAddress() || inetAddress.isMulticastAddress() || !IPV4_PATTERN.matcher(inetAddress.getHostAddress()).matches())
+		        	{
+		        		continue;
+		        	}
+		            return inetAddress;	            	
+		        }
+	        }
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+    }
+
 	@Override
 	public boolean create() {
     	socketconnections = new Vector<Socket>();
     	try {
 			server = new ServerSocket();
 			server.setReuseAddress(true);
-			SocketAddress sa = new InetSocketAddress(SERVER_PORT);
+			SocketAddress sa = new InetSocketAddress(getFirstAddress(),SERVER_PORT);
 			server.bind(sa);
 			return true;
 		} catch (IOException e) {
@@ -42,7 +77,7 @@ public class CommunicationServerSocket implements CommunicationServer {
 			DataInputStream is = new DataInputStream(client.getInputStream());
 	    	DataOutputStream os = new DataOutputStream(client.getOutputStream());
 
-	    	Connection cn = new Connection(connNumber, client.getLocalAddress().getHostAddress(), is, os, inqueue);
+	    	Connection cn = new Connection(connNumber, ((InetSocketAddress) client.getRemoteSocketAddress()).getAddress().getHostAddress(), is, os, inqueue);
 			cn.start();
 
 			return cn;

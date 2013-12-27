@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
+import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.network.Network;
 import simmcast.network.Packet;
 import simmcast.network.PacketType;

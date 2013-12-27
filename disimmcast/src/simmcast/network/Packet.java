@@ -2,8 +2,10 @@ package simmcast.network;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import simmcast.distribution.CloneOnClient;
 import simmcast.distribution.command.CommandProtocol;
@@ -365,7 +367,24 @@ public class Packet extends Queueable implements Cloneable, CloneOnClient {
 		try {
 			Class r = Class.forName(dataClassName);
 			Constructor[] c = r.getConstructors();
-			Object n = c[0].newInstance(jo.get(DATA).getAsString());
+			Object n = null;
+			for (int i=0;i<c.length;i++)
+			{
+				Type[] pt = c[i].getParameterTypes();
+				if (pt.length==1)
+				{
+					if (pt[0].equals(String.class))
+					{
+						n = c[i].newInstance(jo.get(DATA).getAsString());
+						break;
+					}
+					if (pt[0].equals(JsonObject.class))
+					{
+						n = c[i].newInstance(new JsonParser().parse(jo.get(DATA).getAsString()).getAsJsonObject());
+						break;
+					}
+				}
+			}
 			return new Packet(from, to, new PacketType(type), size, n);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
