@@ -24,9 +24,9 @@ public class CommandBlockedOrFinished extends CommandProtocol {
 	{
 		super(0, CommandProtocol.getNextCmdId(), ACTION_BLOCKED_FINISHED, "");
 		networkId = mNetworkId;
-		JsonObject gson = new JsonObject();
-		gson.addProperty(NETWORK_ID, networkId);
-		parameters = gson.toString();
+/*		JsonObject gson = new JsonObject();
+		gson.addProperty(NETWORK_ID, networkId);*/
+		parameters = "{netId:" + networkId + "}"; //gson.toString();
 	}
 
 	public int getNetworkId()

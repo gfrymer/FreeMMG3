@@ -20,6 +20,8 @@
 
 package simmcast.node;
 
+import simmcast.distribution.interfaces.NodeInterface;
+import simmcast.distribution.interfaces.RouterNodeInterface;
 import simmcast.network.InvalidIdentifierException;
 import simmcast.network.MultiPortPacketQueue;
 import simmcast.network.Network;
@@ -59,7 +61,7 @@ public abstract class HostNode extends Node {
    /**
     * The router this host is connected to.
     */
-   RouterNode router = null;
+   RouterNodeInterface router = null;
 
    /**
     * The network id of the router to which this host is connected to.
@@ -84,7 +86,7 @@ public abstract class HostNode extends Node {
     * @return The router this host is connected to, or
     * null if the host is not connected to any router.
     */
-   public RouterNode getRouter() {
+   public RouterNodeInterface getRouter() {
       return router;
    }
 
@@ -131,7 +133,7 @@ public abstract class HostNode extends Node {
     * @param rqLimit_ The maximum size for the specific RQ of the 
     * node at the arriving end of the path. 
     */
-   public void addPath(Node destination_,
+   public void addPath(NodeInterface destination_,
                        int pathCapacity_,
                        double bandwidth_,
                        RandomStream propagationStream_,
@@ -153,7 +155,7 @@ public abstract class HostNode extends Node {
       routerAddress = destination_.getNetworkId();
       network.tracer.path(routerPath);
       try {
-         router = (RouterNode)destination_;
+         router = (RouterNodeInterface)destination_;
       } catch (ClassCastException e) {
          System.err.println("Error: Attempted to connect a host to a node which is not a router.");
          throw e;
@@ -161,7 +163,7 @@ public abstract class HostNode extends Node {
    }
    
    // Added by Lucas A.S.
-   public void addTCPPath(Node destination_,
+   public void addTCPPath(NodeInterface destination_,
 		   double bandwidth_,
 		   RandomStream propagationStream_,
 		   double offset_, int rqLimit_)
@@ -186,7 +188,7 @@ public abstract class HostNode extends Node {
 	   network.tracer.path(routerPath);
 	   
 	   try {
-		   router = (RouterNode)destination_;
+		   router = (RouterNodeInterface)destination_;
 	   } catch (ClassCastException e) {
 		   System.err.println("Error: Attempted to connect a host to a node which is not a router.");
 		   throw e;

@@ -21,7 +21,7 @@ import com.sun.xml.internal.ws.api.message.Packet;
 public class Connection extends Thread implements Runnable {
 	
 	private java.util.concurrent.LinkedBlockingQueue<CommandProtocol> in;
-	private Vector<Integer> acksMutex;
+	private HashMap<Integer, Integer> acksMutex;
 	private HashMap<Integer,CommandProtocol> acks;
 	private DataInputStream is;
 	private DataInputStream is2;
@@ -37,7 +37,7 @@ public class Connection extends Thread implements Runnable {
 		connId = mConnId;
 		description = mDescription;
 		in = mIn;
-		acksMutex = new Vector<Integer>();
+		acksMutex = new HashMap<Integer,Integer>();
 		acks = new HashMap<Integer, CommandProtocol>();
 		is = mIs;
 		os = mOs;
@@ -58,7 +58,7 @@ public class Connection extends Thread implements Runnable {
 
 	private CommandProtocol waitForAck(int cmdId)
 	{
-		synchronized (acks) {
+/*		synchronized (acks) {
 			Iterator<Integer> ackskeys = acks.keySet().iterator();
 			while (ackskeys.hasNext())
 			{
@@ -70,14 +70,14 @@ public class Connection extends Thread implements Runnable {
 					return cp;
 				}
 			}
-		}
+		}*/
 		Integer cmdInt = new Integer(cmdId);
-		synchronized (acksMutex)
-		{
-			acksMutex.add(cmdInt);
-		}
 		try {
 			synchronized (cmdInt) {
+				synchronized (acksMutex)
+				{
+					acksMutex.put(cmdInt,cmdInt);
+				}
 				cmdInt.wait();
 			}
 			synchronized (acksMutex) {
@@ -293,26 +293,28 @@ public class Connection extends Thread implements Runnable {
 			{
 				if ((cp.getAction()==CommandProtocol.ACTION_OK) || (cp.getAction()==CommandProtocol.ACTION_ERROR)) 
 				{
-					boolean haveack = false;
-					for (int j=0;j<acksMutex.size();j++)
+					Integer cmdInt = null;
+					while (cmdInt==null)
 					{
-						Integer cmdInt = acksMutex.get(j);
-						if (cmdInt.intValue()==cp.getCmdId())
+						synchronized (acksMutex) {
+							cmdInt = acksMutex.get(cp.getCmdId());
+						}
+						if (cmdInt!=null)
 						{
-							haveack = true;
 							synchronized (acks) {
-								acks.put(cmdInt,cp);
+								acks.put(cp.getCmdId(),cp);
 							}
 							synchronized (cmdInt) {
 								cmdInt.notify();
 							}
-							break;
 						}
-					}
-					if (!haveack)
-					{
-						synchronized (acks) {
+						else
+						{
+//							System.err.println("\nACK FOR CMDID " + cp.getCmdId() + " ABSENT. waiting...");
+							Thread.sleep(100);
+/*						synchronized (acks) {
 							acks.put(new Integer(cp.getCmdId()),cp);
+						}*/
 						}
 					}
 				}

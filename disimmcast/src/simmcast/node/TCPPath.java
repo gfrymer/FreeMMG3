@@ -24,8 +24,8 @@ package simmcast.node;
 
 import java.util.Random;
 
+import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.network.Packet;
-
 import arjuna.JavaSim.Distributions.RandomStream;
 
 
@@ -48,8 +48,8 @@ public class TCPPath extends Path {
 	// CONSTRUCTORS
 	// *****************************************************
 	
-	public TCPPath(Node source_,
-			Node destination_,
+	public TCPPath(NodeInterface source_,
+			NodeInterface destination_,
 			double bandwidth_,
 			RandomStream propagationStream_,
 			double offset_,
@@ -61,8 +61,8 @@ public class TCPPath extends Path {
 		offset = offset_;
 	}
 	
-	public TCPPath(Node source_,
-			Node destination_,
+	public TCPPath(NodeInterface source_,
+			NodeInterface destination_,
 			double bandwidth_,
 			RandomStream propagationStream_,
 			double offset_,
@@ -75,8 +75,8 @@ public class TCPPath extends Path {
 		offset = offset_;
 	}
 	
-	public TCPPath(Node source_,
-			Node destination_,
+	public TCPPath(NodeInterface source_,
+			NodeInterface destination_,
 			double bandwidth_,
 			RandomStream propagationStream_,
 			double offset_,

@@ -1,0 +1,96 @@
+# LARGURA DE uma celula, em "pixels"
+# ALTURA DE uma celula, em "pixels"
+# REGIAO DE interesse em "pixels"
+
+macro !CELL_WIDTH  "4096"
+macro !CELL_HEIGHT "4096"
+macro !SOI_RADIUS  "1024"
+
+# ENTRADA 2: largura do mundo virtual simulado, em celulas
+# ENTRADA 3: altura do mundo virtual, em celulas
+macro !WORLD_WIDTH "1"
+macro !WORLD_HEIGHT "1"
+macro !NCELL "5"
+macro !TOTAL_CELLNODES_HALF "5"
+macro !TOTAL_PLAYERS "50"
+# 500"
+macro !LATENCY_MEAN   "25"
+macro !LATENCY_STDDEV "5"
+
+
+# ENTRADA 7: (REDE) configuracao de perda de pacotes: SEM PERDA ate terminar o simulador
+macro !LOSS_CONDITIONS "0.02"
+
+# ENTRADA 8: (REDE) tamanho das filas dos canais(?) paths??
+macro !QUEUESIZE "1000"
+
+# ENTRADA 9: (REDE) capacidade de transmissao dos links. na verdade 
+# no final isso aqui nao vai ser constante, e cada no vai ter um tipo de 
+# conexao bem diferente. uns vao ter adsl 300/600, uns 150/300 
+macro !BANDWIDTH "100000Kbps"
+macro !INFINITE "999999Kbps"
+
+
+
+# ENTRADA 5: 'tick' das celulas, em milisegundos
+
+macro !NET_TICK "100ms" 
+network setNetworkTick !NET_TICK
+####macro !SIMULATION_TOTAL "102000ms"
+####macro !SIMULATION_START "1000ms"
+####macro !SIMULATION_END   "101000ms"
+macro !SIMULATION_TOTAL "6000ms"
+macro !SIMULATION_START "1000ms"
+macro !SIMULATION_END   "5000ms"
+
+
+network setSimulationTimeouts !SIMULATION_TOTAL !SIMULATION_START !SIMULATION_END 
+network setOutput "saida.txt"
+network setAll !WORLD_WIDTH !WORLD_HEIGHT !NCELL !TOTAL_PLAYERS !CELL_WIDTH !CELL_HEIGHT !SOI_RADIUS !LATENCY_MEAN
+network setSeed 10021
+
+
+
+
+
+
+
+
+
+
+
+
+#new DELAY arjuna.JavaSim.Distributions.NormalStream !LATENCY_MEAN !LATENCY_STDDEV
+new DELAY simmcast.stream.NormalStream !LATENCY_MEAN !LATENCY_STDDEV
+
+
+
+
+
+# cria todos os HostNode que irao conectar na INTERNET
+new PCN[1..!TOTAL_CELLNODES_HALF] PrimaryCellNode
+#new BCN[1..!TOTAL_CELLNODES_HALF] BackupCellNode
+new BCN BigBackup
+new PN BigPlayer
+
+# isso aqui eh o no central da nossa estrela, ele se chama INTERNET :-)
+new INTERNET simmcast.route.DefaultRouterNode
+newON INTERNET STATIC simmcast.route.StaticAlgorithmStrategy INTERNET network
+INTERNET setMulticastAlgorithm STATIC
+INTERNET setUnicastAlgorithm STATIC
+
+# adiciona o path entre a INTERNET e os PCN
+INTERNET addPath PCN[1..!TOTAL_CELLNODES_HALF] !QUEUESIZE !BANDWIDTH DELAY !LOSS_CONDITIONS
+PCN[1..!TOTAL_CELLNODES_HALF] addPath INTERNET !QUEUESIZE !BANDWIDTH DELAY !LOSS_CONDITIONS
+
+# adiciona o path entre a INTERNET e os BCN
+INTERNET addPath BCN !QUEUESIZE !INFINITE DELAY !LOSS_CONDITIONS
+BCN addPath INTERNET !QUEUESIZE !INFINITE DELAY !LOSS_CONDITIONS
+
+# adiciona o path entre a INTERNET e os PN
+INTERNET addPath PN !QUEUESIZE !INFINITE DELAY !LOSS_CONDITIONS
+PN addPath INTERNET !QUEUESIZE !INFINITE DELAY !LOSS_CONDITIONS
+
+#PCN[n:1..!TOTAL_CELLNODES_HALF] setLoggerName "PCN_"
+#BCN[n:1..!TOTAL_CELLNODES_HALF] setLoggerName "BCN_"
+#PN setLoggerName "player_"

@@ -15,23 +15,24 @@ import simmcast.script.ScriptParser;
 public class CommandProtocol {
 
 	public static final byte ACTION_CREATE = 1;
-	public static final byte ACTION_INVOKE = 2;
-	public static final byte ACTION_START_SIMULATION = 3;
-	public static final byte ACTION_STOP_SIMULATION = 4;
-	public static final byte ACTION_ADD_TO_POOL = 5;
-	public static final byte ACTION_REMOVE_FROM_POOL = 6;
-	public static final byte ACTION_ACTIVATE_AT = 7;
-	public static final byte ACTION_RESUME_PROCESS = 8;
-	public static final byte ACTION_BLOCKED_FINISHED = 9;
-	public static final byte ACTION_TERMINATE_PROCESS = 10;
+	public static final byte ACTION_CREATE_OBJECT = 2;
+	public static final byte ACTION_INVOKE = 3;
+	public static final byte ACTION_START_SIMULATION = 4;
+	public static final byte ACTION_STOP_SIMULATION = 5;
+	public static final byte ACTION_ADD_TO_POOL = 6;
+	public static final byte ACTION_REMOVE_FROM_POOL = 7;
+	public static final byte ACTION_ACTIVATE_AT = 8;
+	public static final byte ACTION_RESUME_PROCESS = 9;
+	public static final byte ACTION_BLOCKED_FINISHED = 10;
+	public static final byte ACTION_TERMINATE_PROCESS = 11;
 
-	public static final byte ACTION_PACKET_ARRIVAL = 11;
+	public static final byte ACTION_PACKET_ARRIVAL = 12;
 
 	public static final byte ACTION_OK = 100;
 	public static final byte ACTION_ERROR = 101;
 
-	public static final String[] ACTIONS_STRINGS = {"CREATE","INVOKE","START_SIMULATION","STOP_SIMULATION","ADD_TO_POOL","REMOVE_FROM_POOL","ACTIVATE_AT","RESUME_PROCESS","BLOCKED_FINISHED","TERMINATE_PROCESS","PACKET_ARRIVAL"};
-	public static final Class[] ACTIONS_CLASSES = {CommandCreate.class,CommandInvoke.class,CommandStartSimulation.class,CommandStopSimulation.class,CommandAddToPool.class,CommandRemoveFromPool.class,CommandActivateAt.class,CommandResumeProcess.class,CommandBlockedOrFinished.class,CommandTerminateProcess.class,CommandPacketArrival.class};
+	public static final String[] ACTIONS_STRINGS = {"CREATE","CREATE_OBJECT","INVOKE","START_SIMULATION","STOP_SIMULATION","ADD_TO_POOL","REMOVE_FROM_POOL","ACTIVATE_AT","RESUME_PROCESS","BLOCKED_FINISHED","TERMINATE_PROCESS","PACKET_ARRIVAL"};
+	public static final Class[] ACTIONS_CLASSES = {CommandCreate.class,CommandCreateObject.class,CommandInvoke.class,CommandStartSimulation.class,CommandStopSimulation.class,CommandAddToPool.class,CommandRemoveFromPool.class,CommandActivateAt.class,CommandResumeProcess.class,CommandBlockedOrFinished.class,CommandTerminateProcess.class,CommandPacketArrival.class};
 //	public static final int PARAMETER_SIZE = 32;
 
 	public static final Class[] CONSTRUCTOR_FULL = {int.class,int.class,byte.class,String.class};
@@ -46,7 +47,7 @@ public class CommandProtocol {
 
 	private static int nextCmdId = 1;
 
-	public static int getNextCmdId()
+	synchronized public static int getNextCmdId()
 	{
 		return nextCmdId++;
 	}

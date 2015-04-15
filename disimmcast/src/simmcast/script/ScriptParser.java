@@ -41,6 +41,7 @@ import simmcast.distribution.CloneOnClient;
 import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.distribution.interfaces.RouterNodeInterface;
 import simmcast.distribution.proxies.NodeProxy;
+import simmcast.distribution.proxies.ObjectProxy;
 import simmcast.distribution.proxies.RouterNodeProxy;
 import simmcast.group.Group;
 import simmcast.group.GroupTable;
@@ -389,10 +390,10 @@ public class ScriptParser {
       if (tokenCount < 1)
          return;
       String command = tokenizer.nextToken();
-      if (command.equals("new")) {
+      if (command.equals("new") || command.equals("newON")) {
          if (tokenCount < 2)
             throw new InvalidFileException("Invalid object definition");
-         processConstructor(tokenizer);
+         processConstructor(tokenizer, command.equals("newON"));
       } else if (command.equals("seed")) {
          if (tokenCount < 2)
             throw new InvalidFileException("Invalid random seed definition");
@@ -435,10 +436,15 @@ public class ScriptParser {
       }
    }
 
-   private void processConstructor(StringTokenizer tokenizer_) throws InvalidFileException {
+   private void processConstructor(StringTokenizer tokenizer_, boolean onworker) throws InvalidFileException {
       String className = null;
       String label = null;
+      String onworkerlabel = null;
       try {
+    	 if (onworker)
+    	 {
+    		 onworkerlabel = tokenizer_.nextToken();
+    	 }
          label = tokenizer_.nextToken();
          className = tokenizer_.nextToken();
          String[] arguments = parseArguments(tokenizer_);
@@ -453,8 +459,23 @@ public class ScriptParser {
          Constructor constructor = findConstructor(classType, arguments.length);
          if (!nodeClass.isAssignableFrom(classType)) {
              /* now only groups will be created by server */
-             Object[] generated = generateArguments(constructor.getParameterTypes(), arguments);
-        	 newObject = constructor.newInstance(generated);
+             if (onworker)
+             {
+            	 Object nodeobject = symbols.get(onworkerlabel);
+            	 if (nodeobject == null)
+            		 throw new Exception("Parameter "+onworkerlabel+" not found");
+            	 if (!(nodeobject instanceof NodeProxy))
+            		 throw new Exception("Parameter "+onworkerlabel+" must be instance of NodeProxy");
+            	 NodeProxy nodeProxy = (NodeProxy) nodeobject;
+
+            	 ObjectProxy objectProxy = new ObjectProxy(nodeProxy.getClientId(),network,label,className,arguments);
+           		 newObject = objectProxy;
+             }
+             else
+             {
+            	 Object[] generated = generateArguments(constructor.getParameterTypes(), arguments);
+            	 newObject = constructor.newInstance(generated);            	 
+             }
          }
 
          // Special case initializations
@@ -518,6 +539,12 @@ public class ScriptParser {
 	         Method method = findMethod(((NodeProxy)object).getClassType(), function, passedArguments.length);
 	         Object[] arguments = generateArguments(method.getParameterTypes(), passedArguments);
 	         ((NodeProxy)object).invoke(function, parseObjectArgs(arguments,passedArguments));
+         }
+         else if (object instanceof ObjectProxy)
+         {
+	         Method method = findMethod(((ObjectProxy)object).getClassType(), function, passedArguments.length);
+	         Object[] arguments = generateArguments(method.getParameterTypes(), passedArguments);
+	         ((ObjectProxy)object).invoke(function, parseObjectArgs(arguments,passedArguments));
          }
          else
          {
@@ -750,7 +777,7 @@ public class ScriptParser {
             // Handle an object reference
             else {
                Object object = symbols.get(argument);
-               if (object != null && classType.isAssignableFrom(object.getClass()))
+               if (object != null && (classType.isAssignableFrom(object.getClass()) || (object instanceof NodeProxy) || (object instanceof ObjectProxy)))
                   arguments[index] = object;
                else
                   throw new InvalidFileException("Parameter "+argument+" is not of "+classType);
@@ -778,6 +805,10 @@ public class ScriptParser {
         	else if (objects_[i] instanceof NodeProxy)
         	{
         		argument = "{" + arguments_[i] + "," + ((NodeProxy) objects_[i]).getNetworkId() + "," + ((NodeProxy) objects_[i]).getClientId() + "," + ((NodeProxy) objects_[i]).getClientDescription() + "}"; 
+        	}
+        	else if (objects_[i] instanceof ObjectProxy)
+        	{
+        		argument = "{" + arguments_[i] + "," + ((ObjectProxy) objects_[i]).getClientId() + "," + ((ObjectProxy) objects_[i]).getClientDescription() + "}"; 
         	}
         	else if (objects_[i].getClass().isArray())
         	{

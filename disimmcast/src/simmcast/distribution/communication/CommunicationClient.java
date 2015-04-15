@@ -1,8 +1,5 @@
 package simmcast.distribution.communication;
 
-import java.io.DataOutputStream;
-
-
 public interface CommunicationClient {
 
 	public boolean create();

@@ -1,5 +1,6 @@
 package simmcast.distribution.proxies;
 
+import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.distribution.interfaces.RouterNodeInterface;
 import simmcast.network.Network;
 import simmcast.route.RouterNodeThread;
@@ -21,5 +22,17 @@ public class RouterNodeProxy extends NodeProxy implements RouterNodeInterface {
 	public RouterNodeThread getClientThread() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void notifyJoin(NodeInterface node_) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void notifyLeave(NodeInterface node_) {
+		// TODO Auto-generated method stub
+		
 	}
 }

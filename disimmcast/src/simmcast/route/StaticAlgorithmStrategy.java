@@ -31,7 +31,7 @@ import simmcast.node.RouterNode;
 
 /**
  * The static algorithm strategy handles both unicast and multicast
- * protocols. It provides support for aribitrary topologies without
+ * protocols. It provides support for arbitrary topologies without
  * using a proper distributed routing algorithm. This is achieved
  * giving this strategy an artificial, always up-to-date knowledge about
  * the state of the entire network.

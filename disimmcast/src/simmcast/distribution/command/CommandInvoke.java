@@ -14,20 +14,42 @@ import simmcast.script.ScriptParser;
 public class CommandInvoke extends CommandProtocol {
 
 	public final static String NETWORK_ID = "netId";
+	public final static String NAME = "name";
 	public final static String FUNCTION = "fnct";
 	public final static String ARGUMENTS = "args";
 
 	private int networkId;
+	private String name;
 	private String function;
 	private String[] arguments;
+
+	public CommandInvoke(int mClientId, int mCmdId, byte mAction, String mParameter)
+	{
+		super(mClientId, mCmdId, mAction, mParameter);
+		init(mCmdId, mAction, mParameter);
+	}
 
 	public CommandInvoke(int mCmdId, byte mAction, String mParameter)
 	{
 		super(0, mCmdId, mAction, mParameter);
+		init(mCmdId, mAction, mParameter);
+	}
+
+	private void init(int mCmdId, byte mAction, String mParameter)
+	{
 		JsonObject jo = getJsonParameters();
 		if (jo!=null)
 		{
-			networkId = jo.get(NETWORK_ID).getAsInt();
+			if (jo.get(NETWORK_ID)!=null)
+			{
+				networkId = jo.get(NETWORK_ID).getAsInt();
+				name = null;
+			}
+			else
+			{
+				name = jo.get(NAME).getAsString();
+				networkId = -1;
+			}
 			function = jo.get(FUNCTION).getAsString();
 			JsonArray jsonArgs = jo.get(ARGUMENTS).getAsJsonArray();
 			arguments = new String[jsonArgs.size()];
@@ -38,10 +60,30 @@ public class CommandInvoke extends CommandProtocol {
 		}
 	}
 
+	public CommandInvoke(String mName, String mFunction, String[] mParameters)
+	{
+		super(0, CommandProtocol.getNextCmdId(), ACTION_INVOKE, "");
+		this.networkId = -1;
+		this.name = mName;
+		this.function = mFunction;
+		this.arguments = mParameters;
+		JsonObject gson = new JsonObject();
+		gson.addProperty(NAME, mName);
+		gson.addProperty(FUNCTION, function);
+		JsonArray args = new JsonArray();
+    	for (int i=0; i<arguments.length; i++)
+    	{
+    		args.add(new JsonPrimitive(arguments[i]));
+    	}
+		gson.add(ARGUMENTS, args);
+		parameters = gson.toString();
+	}
+
 	public CommandInvoke(int mNetworkId, String mFunction, String[] mParameters)
 	{
 		super(0, CommandProtocol.getNextCmdId(), ACTION_INVOKE, "");
 		this.networkId = mNetworkId;
+		this.name = null;
 		this.function = mFunction;
 		this.arguments = mParameters;
 		JsonObject gson = new JsonObject();
@@ -61,6 +103,11 @@ public class CommandInvoke extends CommandProtocol {
 		return networkId;
 	}
 
+	public String getName()
+	{
+		return name;
+	}
+
 	public String getFunction()
 	{
 		return function;
@@ -76,7 +123,7 @@ public class CommandInvoke extends CommandProtocol {
 		Object obj = null;
 		String fnctn = null;
 		boolean isGroupTable = false;
-		if (Network.isMulticast(getNetworkId()))
+		if ((Network.isMulticast(getNetworkId())) && (name==null))
 		{
 			isGroupTable = getFunction().startsWith(GroupTableInterface.GP_FNCTN_PREFIX);
 			if (isGroupTable)
@@ -88,6 +135,17 @@ public class CommandInvoke extends CommandProtocol {
 			{
 				fnctn = getFunction();
 				obj = network.getGroups().getGroupById(getNetworkId());
+			}
+		}
+		else
+		{
+			fnctn = getFunction();
+		}
+		if (name!=null)
+		{
+			if (name.equals("network"))
+			{
+				obj = network;
 			}
 		}
 		Method method;

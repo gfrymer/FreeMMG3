@@ -1,20 +1,9 @@
 package simmcast.distribution;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.SocketException;
 import java.util.Vector;
 
 import simmcast.distribution.command.CommandCreate;
+import simmcast.distribution.command.CommandCreateObject;
 import simmcast.distribution.command.CommandInvoke;
 import simmcast.distribution.command.CommandProtocol;
 import simmcast.distribution.command.CommandResumeProcess;
@@ -22,6 +11,7 @@ import simmcast.distribution.command.CommandStartSimulation;
 import simmcast.distribution.command.CommandStopSimulation;
 import simmcast.distribution.command.CommandTerminateProcess;
 import simmcast.distribution.communication.CommunicationServer;
+import simmcast.distribution.communication.CommunicationServerNamedPipe;
 import simmcast.distribution.communication.CommunicationServerSocket;
 import simmcast.distribution.communication.Connection;
 import simmcast.distribution.interfaces.GroupInterface;
@@ -34,6 +24,8 @@ import simmcast.node.Node;
 import simmcast.script.ScriptParser;
 
 public class Manager implements Runnable {
+
+	public static final boolean USE_SOCKETS = true;
 
     private Network network;
     private Vector<Connection> connections;
@@ -49,8 +41,16 @@ public class Manager implements Runnable {
     {
     	this.network = network;
     	actualWorker = 0;
-    	commServer = new CommunicationServerSocket();
+    	commServer = (USE_SOCKETS) ? new CommunicationServerSocket() : new CommunicationServerNamedPipe();
     	commServer.create();
+    }
+
+    public Manager(Network network, String inetAddr)
+    {
+    	this.network = network;
+    	actualWorker = 0;
+    	commServer = (USE_SOCKETS) ? new CommunicationServerSocket() : new CommunicationServerNamedPipe();
+    	commServer.create(inetAddr);
     }
 
     public void listenForConnections()
@@ -105,9 +105,43 @@ public class Manager implements Runnable {
     	}
     }
 
+    public int createObject(int workerId, String label, String className, String[] arguments)
+    {
+    	if (workerId>=connections.size())
+    	{
+    		return -1;
+    	}
+    	CommandCreateObject co = new CommandCreateObject(label, className, arguments);
+    	String err = connections.get(workerId).sendCmd(co);
+    	if (err==null)
+    	{
+    		return workerId;
+		}
+    	else
+    	{
+    		System.err.println(err);
+    		return -1;
+    	}
+    }
+
     public boolean invokeCommand(int clientId, int addressId, String function, String[] arguments)
     {
     	CommandInvoke ci = new CommandInvoke(addressId, function, arguments);
+    	String err = connections.get(clientId).sendCmd(ci);
+    	if (err==null)
+    	{
+    		return true;
+		}
+    	else
+    	{
+    		System.err.println(err);
+    		return false;
+    	}
+    }
+
+    public boolean invokeCommand(int clientId, String name, String function, String[] arguments)
+    {
+    	CommandInvoke ci = new CommandInvoke(name, function, arguments);
     	String err = connections.get(clientId).sendCmd(ci);
     	if (err==null)
     	{

@@ -29,10 +29,10 @@ public class CommandActivateAt extends CommandProtocol {
 		super(0, CommandProtocol.getNextCmdId(), ACTION_ACTIVATE_AT, "");
 		this.time = time;
 		this.pid = pid;
-		JsonObject gson = new JsonObject();
+/*		JsonObject gson = new JsonObject();
 		gson.addProperty(TIME, time);
-		gson.addProperty(PID, pid);
-		parameters = gson.toString();
+		gson.addProperty(PID, pid);*/
+		parameters = "{time:" + time + ",pid:" + pid + "}";//gson.toString();
 	}
 
 	public double getTime()

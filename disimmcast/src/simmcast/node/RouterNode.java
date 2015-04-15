@@ -21,6 +21,7 @@
 package simmcast.node;
 
 import simmcast.distribution.interfaces.NodeInterface;
+import simmcast.distribution.interfaces.RouterNodeInterface;
 import simmcast.network.Network;
 import simmcast.network.NetworkPacket;
 import simmcast.network.Packet;
@@ -63,7 +64,7 @@ import simmcast.route.RouterNodeThread;
  */
 // TODO: Most issues presented in the last paragraph are workarounds.
 // As these are fixed, the documentation should be updated.
-public abstract class RouterNode extends Node {
+public abstract class RouterNode extends Node implements RouterNodeInterface {
 
    // *****************************************************
    // ATTRIBUTES

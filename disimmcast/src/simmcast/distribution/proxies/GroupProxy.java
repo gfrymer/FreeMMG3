@@ -59,13 +59,13 @@ public class GroupProxy implements GroupInterface {
 	public void join(int nodeId) {
 		String[] params = new String[1];
 		params[0] = "" + nodeId;
-		network.getClient().invokeCommand(-1, netId, "join", params);
+		network.getClient().invokeCommand(netId, "join", params);
 	}
 
 	public boolean leave(int nodeId) {
 		String[] params = new String[1];
 		params[0] = "" + nodeId;
-		return network.getClient().invokeCommand(-1, netId, "leave", params).equals("1");
+		return network.getClient().invokeCommand(netId, "leave", params).equals("1");
 	}
 
 	public int[] getNetworkIds() {

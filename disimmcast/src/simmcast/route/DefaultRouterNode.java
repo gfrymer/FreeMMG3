@@ -32,7 +32,7 @@ import simmcast.node.TerminationException;
  * This class implements the default Router architecture.
  * This architecture is based on two threads: a receiver thread,
  * which is responsible for the forwarding logic, having two
- * algorithms attached to it (one for unicast, one for mulitcast),
+ * algorithms attached to it (one for unicast, one for multicast),
  * and a sender thread, which passively waits for packets directed
  * from the receiver thread and sends them.
  */
@@ -112,7 +112,7 @@ public class DefaultRouterNode extends RouterNode implements PacketOutlet {
    // INIT ROUTINES
    // *****************************************************
 
-   public void initialize(simmcast.engine.Scheduler scheduler_, Network network_, String name_) {
+   public void initialize(/*simmcast.engine.Scheduler*/simmcast.distribution.interfaces.SchedulerInterface scheduler_, Network network_, String name_) {
       super.initialize(scheduler_, network_, name_);
       queue = new PacketQueue("");
       receiver = new DefaultRouterNodeReceiver(this);

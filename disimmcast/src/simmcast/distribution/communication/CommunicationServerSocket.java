@@ -32,6 +32,11 @@ public class CommunicationServerSocket implements CommunicationServer {
 
     public static InetAddress getFirstAddress()
     {
+    	return getFirstAddress(null);
+    }
+
+    public static InetAddress getFirstAddress(String checkAddr)
+    {
     	Enumeration<NetworkInterface> nets;
 		try {
 			nets = NetworkInterface.getNetworkInterfaces();
@@ -42,6 +47,13 @@ public class CommunicationServerSocket implements CommunicationServer {
 		        	if (inetAddress.isLoopbackAddress() || inetAddress.isMulticastAddress() || !IPV4_PATTERN.matcher(inetAddress.getHostAddress()).matches())
 		        	{
 		        		continue;
+		        	}
+		        	if (checkAddr!=null)
+		        	{
+		        		if (!checkAddr.equals(inetAddress.getHostAddress()))
+		        		{
+		        			continue;
+		        		}
 		        	}
 		            return inetAddress;	            	
 		        }
@@ -55,11 +67,16 @@ public class CommunicationServerSocket implements CommunicationServer {
 
 	@Override
 	public boolean create() {
+		return create(null);
+	}
+
+	@Override
+	public boolean create(String inetAddr) {
     	socketconnections = new Vector<Socket>();
     	try {
 			server = new ServerSocket();
 			server.setReuseAddress(true);
-			SocketAddress sa = new InetSocketAddress(getFirstAddress(),SERVER_PORT);
+			SocketAddress sa = new InetSocketAddress(getFirstAddress(inetAddr),SERVER_PORT);
 			server.bind(sa);
 			return true;
 		} catch (IOException e) {
@@ -67,7 +84,7 @@ public class CommunicationServerSocket implements CommunicationServer {
 		}
 		return false;
 	}
-
+	
 	@Override
 	public Connection listen(int connNumber, java.util.concurrent.LinkedBlockingQueue<CommandProtocol> inqueue)
 	{
@@ -105,5 +122,5 @@ public class CommunicationServerSocket implements CommunicationServer {
 			return false;
 		}
 	}
-	
+
 }

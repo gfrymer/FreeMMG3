@@ -14,6 +14,7 @@ public class ProcessProxy implements ProcessInterface {
 
 	private Network network;
 	private int clientId;
+	double lastSchedule = 0.0;
 
 	public ProcessProxy(Network mNetwork, int mClientId)
 	{
@@ -27,11 +28,11 @@ public class ProcessProxy implements ProcessInterface {
 	}
 
 	public double getLastSchedule() {
-		return 0;
+		return lastSchedule;
 	}
 
 	public void setLastSchedule(double schedule) {
-		
+		lastSchedule = schedule;
 	}
 
 	public int getPid() {
@@ -39,7 +40,7 @@ public class ProcessProxy implements ProcessInterface {
 	}
 
 	public void setPid(int newpid) {
-
+		pid = newpid;
 	}
 
 	public int getClientId() {

@@ -17,18 +17,23 @@ import simmcast.distribution.command.CommandActivateAt;
 import simmcast.distribution.command.CommandAddToPool;
 import simmcast.distribution.command.CommandBlockedOrFinished;
 import simmcast.distribution.command.CommandCreate;
+import simmcast.distribution.command.CommandCreateObject;
 import simmcast.distribution.command.CommandInvoke;
 import simmcast.distribution.command.CommandPacketArrival;
 import simmcast.distribution.command.CommandProtocol;
 import simmcast.distribution.command.CommandRemoveFromPool;
 import simmcast.distribution.command.CommandStopSimulation;
 import simmcast.distribution.communication.CommunicationClient;
+import simmcast.distribution.communication.CommunicationClientNamedPipe;
 import simmcast.distribution.communication.CommunicationClientSocket;
 import simmcast.distribution.communication.Connection;
 import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.distribution.interfaces.ProcessInterface;
+import simmcast.distribution.interfaces.RouterNodeInterface;
 import simmcast.distribution.proxies.NodeProxy;
+import simmcast.distribution.proxies.ObjectProxy;
 import simmcast.distribution.proxies.Proxyable;
+import simmcast.distribution.proxies.RouterNodeProxy;
 import simmcast.engine.Process;
 import simmcast.group.Group;
 import simmcast.network.Network;
@@ -100,9 +105,10 @@ public class Worker implements Runnable {
     public Worker(Network network)
 	{
     	this.network = network;
-    	commClient = new CommunicationClientSocket();
+    	commClient = (Manager.USE_SOCKETS) ? new CommunicationClientSocket() : new CommunicationClientNamedPipe();
     	commClient.create();
 		symbols = new Hashtable();
+		symbols.put("network", network);
 		started = false;
 	}
 
@@ -210,7 +216,7 @@ public class Worker implements Runnable {
     	}
    }
 
-    public String invokeCommand(int clientId, int addressId, String function, String[] arguments)
+    public String invokeCommand(int addressId, String function, String[] arguments)
     {
     	CommandInvoke ci = new CommandInvoke(addressId, function, arguments);
     	String errData = connection.sendCmd(ci);
@@ -227,7 +233,24 @@ public class Worker implements Runnable {
     	}
     }
 
-    public boolean createNodes() throws Exception
+    public String invokeCommand(String name, String function, String[] arguments)
+    {
+    	CommandInvoke ci = new CommandInvoke(name, function, arguments);
+    	String errData = connection.sendCmd(ci);
+    	if (errData==null)
+    		return errData;
+    	if (errData.startsWith(CommandProtocol.OK_PREFIX))
+    	{
+    		return errData.substring(CommandProtocol.OK_PREFIX.length());
+    	}
+    	else
+    	{
+    		System.out.println(errData);
+    		return null;
+    	}
+    }
+
+    public boolean createNodesAndObjects() throws Exception
 	{
     	network.nodes  = new NodeVector();
         nodeClass = Class.forName("simmcast.node.Node");
@@ -251,7 +274,7 @@ public class Worker implements Runnable {
 			        }
 
 			        if (!nodeClass.isAssignableFrom(classType)) {
-			        	connection.sendError(cc.getCmdId(), "Create on Client only for node objects");
+			        	connection.sendError(cc.getCmdId(), "Create on Client only for node objects, use Create Object instead");
 			        	break;
 			        }
 
@@ -259,23 +282,57 @@ public class Worker implements Runnable {
 		            Object[] generated = generateArguments(constructor.getParameterTypes(), cc.getArguments());
 		            Object newObject = constructor.newInstance(generated);
 
+		            System.out.println("Create " + cc.getLabel());
 		            Node node = (Node)newObject;
 		            network.initializeNode(node, cc.getLabel());
 		            node.setNetworkId(cc.getAddress());
 		            network.nodes.add(node);
 		            network.tracer.node(node);
 
+		            symbols.put(cc.getLabel(), node);
 		            connection.sendOk(cc.getCmdId());
+					break;
+
+				case CommandProtocol.ACTION_CREATE_OBJECT:
+					CommandCreateObject co = (CommandCreateObject) cmd;
+			        Class classTypeObj = Class.forName(co.getClassName());
+			        if ( Modifier.isAbstract(classTypeObj.getModifiers()) ) {
+			           System.err.println("Error: Class is abstract.");
+			           throw new Exception();
+			        }
+
+			        Constructor constructorobj = ScriptParser.findConstructor(classTypeObj, co.getArguments().length);
+		            Object[] generatedobj = generateArguments(constructorobj.getParameterTypes(), co.getArguments());
+		            Object newObjectobj = constructorobj.newInstance(generatedobj);
+
+		        	symbols.put(co.getLabel(),newObjectobj);
+
+		            connection.sendOk(co.getCmdId());
 					break;
 
 				case CommandProtocol.ACTION_INVOKE:
 					CommandInvoke ci = (CommandInvoke) cmd;
-					NodeInterface n = network.nodes.getNodeById(ci.getNetworkId());
-					Method method = ScriptParser.findMethod(n, ci.getFunction(), ci.getArguments().length);
-					Object[] arguments = generateArguments(method.getParameterTypes(), ci.getArguments());
-					method.invoke(n, arguments);
+					Object o;
+					if (ci.getNetworkId()>-1)
+					{
+						o = network.nodes.getNodeById(ci.getNetworkId());
+					}
+					else
+					{
+						o = symbols.get(ci.getName());
+					}
+					if (o!=null)
+					{
+						Method method = ScriptParser.findMethod(o, ci.getFunction(), ci.getArguments().length);
+						Object[] arguments = generateArguments(method.getParameterTypes(), ci.getArguments());
+						method.invoke(o, arguments);
 
-					connection.sendOk(ci.getCmdId());
+						connection.sendOk(ci.getCmdId());
+					}
+					else
+					{
+						connection.sendError(ci.getCmdId(), "Cannot find " + ((ci.getNetworkId()>-1) ? " Node " + ci.getNetworkId() : " Object " + ci.getName()));
+					}
 					break;
 			}
 			cmd = in.take();
@@ -399,7 +456,18 @@ public class Worker implements Runnable {
 	            		   Constructor constructor = ScriptParser.findConstructor(classImplement, 0);
 	            		   object = constructor.newInstance();
 	            	   }
-	            	   else if (classType.equals(NodeInterface.class))
+	            	   else if (classType.isAssignableFrom(RouterNodeInterface.class))
+	            	   {
+	            		   String args = argument.substring(1,argument.length()-1);
+	            		   String[] params = args.split(",");
+	            		   object = symbols.get(params[0]);
+	            		   if (object==null)
+	            		   {
+		            		   object = new RouterNodeProxy(network, params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]), params[3]);
+	            		   }
+	            		   argument = params[0];
+	            	   }
+	            	   else if (classType.isAssignableFrom(NodeInterface.class))
 	            	   {
 	            		   String args = argument.substring(1,argument.length()-1);
 	            		   String[] params = args.split(",");
@@ -407,6 +475,17 @@ public class Worker implements Runnable {
 	            		   if (object==null)
 	            		   {
 		            		   object = new NodeProxy(network, params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]), params[3]);	            		   
+	            		   }
+	            		   argument = params[0];
+	            	   }
+	            	   else if (argument.startsWith("{"))
+	            	   {
+	            		   String args = argument.substring(1,argument.length()-1);
+	            		   String[] params = args.split(",");
+	            		   object = symbols.get(params[0]);
+	            		   if (object==null)
+	            		   {
+		            		   object = new ObjectProxy(network, params[0], Integer.parseInt(params[1]), params[2]);	            		   
 	            		   }
 	            		   argument = params[0];
 	            	   }

@@ -13,7 +13,7 @@ public class StopAndWait1_N {
          System.exit(1);
       }
       // creates tree network and starts the experiment
-      Network myNetwork = new Network(args[0].equals("MANAGER") ? null : args[1]);
-      myNetwork.runSimulation(args[1]);
+      Network myNetwork = new Network(args[0].equals("MANAGER"),args[1]);
+      myNetwork.runSimulation(args[0].equals("MANAGER") ? args[2] : null);
    }
 }

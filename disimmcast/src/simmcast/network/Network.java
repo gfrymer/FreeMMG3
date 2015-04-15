@@ -3,6 +3,10 @@ package simmcast.network;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.Random;
 
 import simmcast.distribution.Worker;
@@ -110,6 +114,9 @@ public class Network extends simmcast.engine.Process {
    private boolean isManager;
    private Manager manager;
    private Worker worker;
+   
+   protected HashMap<String, Object> cacheable_fields;
+
    /**
     * TODO
     */
@@ -124,13 +131,13 @@ public class Network extends simmcast.engine.Process {
     * for the entire simulation run. There must be only
     * one object of this class per simulation.
     */
-   public Network(String managerHost) {
+   public Network(boolean _isManager, String host) {
       setName("["+getClass()+"]");
-      isManager = managerHost==null;
+      isManager = _isManager;
       tracer = new NullTraceGenerator();
       if (isManager)
       {
-		manager = new Manager(this);
+		manager = new Manager(this,host);
 		manager.listenForConnections();
 		System.out.println("Network on server mode and listening for client connections");
 		System.out.println("Press ENTER to start simulation");
@@ -148,9 +155,9 @@ public class Network extends simmcast.engine.Process {
       }
       else
       {
-  		System.out.println("Network on client mode and connecting to server on: " + managerHost);
+  		System.out.println("Network on client mode and connecting to server on: " + host);
 		worker = new Worker(this);
-		if (worker.connect(managerHost))
+		if (worker.connect(host))
 		{
 	  		System.out.println("Client connected succesfully");
 		}
@@ -217,7 +224,7 @@ public class Network extends simmcast.engine.Process {
 	   else
 	   {
 		   try {
-			   worker.createNodes();
+			   worker.createNodesAndObjects();
 			   groups = new GroupTableProxy(this);
 		   } catch (Exception e) {
 			   e.printStackTrace();
@@ -242,7 +249,10 @@ public class Network extends simmcast.engine.Process {
           // Starting <b>all</b> threads.
           // (Including this network thread)
           for (int i=0; i<nodes.size(); i++)
+          {
+	         System.out.println("Begin " + nodes.nodeAt(i).getName());
              nodes.nodeAt(i).begin();
+          }
 
           start();
           worker.startSimulation();
@@ -534,4 +544,234 @@ public class Network extends simmcast.engine.Process {
    public GroupTableInterface getGroups() {
 	   return groups;
    }
+
+   public Object getAsClass(String fieldName, Class classType)
+   {
+	   Object g = get(fieldName);
+	   if (classType.isAssignableFrom(g.getClass()))
+	   {
+		   return g;
+	   }
+	   if (g instanceof String)
+	   {
+		   String[] args = ((String) g).split(",");
+		   try {
+			   Constructor c = ScriptParser.findConstructor(classType, args.length);
+			   Object[] parsedArgs = new Object[args.length];
+			   for (int i=0;i<args.length;i++)
+			   {
+				   if (c.getParameterTypes()[i].equals(Byte.class))
+				   {
+					   parsedArgs[i] = new Byte(args[i]);
+				   }
+				   if (c.getParameterTypes()[i].equals(Character.class))
+				   {
+					   parsedArgs[i] = new Character(args[i].charAt(0));
+				   }
+				   if (c.getParameterTypes()[i].equals(Long.class))
+				   {
+					   parsedArgs[i] = new Long(args[i]);
+				   }
+				   if (c.getParameterTypes()[i].equals(Integer.class))
+				   {
+					   parsedArgs[i] = new Integer(args[i]);
+				   }
+				   if (c.getParameterTypes()[i].equals(Short.class))
+				   {
+					   parsedArgs[i] = new Short(args[i]);
+				   }
+				   if (c.getParameterTypes()[i].equals(Double.class))
+				   {
+					   parsedArgs[i] = new Double(args[i]);
+				   }
+				   if (c.getParameterTypes()[i].equals(Float.class))
+				   {
+					   parsedArgs[i] = new Float(args[i]);
+				   }
+				   if (c.getParameterTypes()[i].equals(Boolean.class))
+				   {
+					   parsedArgs[i] = new Boolean(args[i]);
+				   }
+				   if (c.getParameterTypes()[i].equals(String.class))
+				   {
+					   parsedArgs[i] = args[i];
+				   }
+			   }
+			   return c.newInstance(parsedArgs);
+		   } catch (InvalidFileException e) {
+			   e.printStackTrace();
+		   } catch (IllegalArgumentException e) {
+			   e.printStackTrace();
+		   } catch (InstantiationException e) {
+			   e.printStackTrace();
+		   } catch (IllegalAccessException e) {
+			   e.printStackTrace();
+		   } catch (InvocationTargetException e) {
+			e.printStackTrace();
+		   }
+		   return null;
+	   }
+	   return g;
+   }
+
+   public int getAsInt(String fieldName)
+   {
+	   Object g = get(fieldName);
+	   if (g instanceof Integer)
+	   {
+		   return ((Integer) g).intValue();
+	   }
+	   if (g instanceof String)
+	   {
+		   return new Integer((String) g).intValue();
+	   }
+	   return Integer.MIN_VALUE;
+   }
+
+   public double getAsDouble(String fieldName)
+   {
+	   Object g = get(fieldName);
+	   if (g instanceof Double)
+	   {
+		   return ((Double) g).doubleValue();
+	   }
+	   if (g instanceof String)
+	   {
+		   return new Double((String) g).doubleValue();
+	   }
+	   return Double.MIN_VALUE;
+   }
+
+   public char getAsChar(String fieldName)
+   {
+	   Object g = get(fieldName);
+	   if (g instanceof Character)
+	   {
+		   return ((Character) g).charValue();
+	   }
+	   if (g instanceof String)
+	   {
+		   return ((String) g).charAt(0);
+	   }
+	   return 0;
+   }
+
+   public byte getAsByte(String fieldName)
+   {
+	   Object g = get(fieldName);
+	   if (g instanceof Byte)
+	   {
+		   return ((Byte) g).byteValue();
+	   }
+	   if (g instanceof String)
+	   {
+		   return new Byte((String) g).byteValue();
+	   }
+	   return 0;
+   }
+
+   public float getAsFloat(String fieldName)
+   {
+	   Object g = get(fieldName);
+	   if (g instanceof Float)
+	   {
+		   return ((Float) g).floatValue();
+	   }
+	   if (g instanceof String)
+	   {
+		   return new Float((String) g).floatValue();
+	   }
+	   return Float.MIN_VALUE;
+   }
+
+   public boolean getAsBoolean(String fieldName)
+   {
+	   Object g = get(fieldName);
+	   if (g instanceof Boolean)
+	   {
+		   return ((Boolean) g).booleanValue();
+	   }
+	   if (g instanceof String)
+	   {
+		   return new Boolean((String) g).booleanValue();
+	   }
+	   return Boolean.FALSE;   
+   }
+
+   public short getAsShort(String fieldName)
+   {
+	   Object g = get(fieldName);
+	   if (g instanceof Short)
+	   {
+		   return ((Short) g).shortValue();
+	   }
+	   if (g instanceof String)
+	   {
+		   return new Short((String) g).shortValue();
+	   }
+	   return Short.MIN_VALUE;	   
+   }
+
+   public long getAsLong(String fieldName)
+   {
+	   Object g = get(fieldName);
+	   if (g instanceof Long)
+	   {
+		   return ((Long) g).longValue();
+	   }
+	   if (g instanceof String)
+	   {
+		   return new Long((String) g).longValue();
+	   }
+	   return Long.MIN_VALUE;	   
+   }
+
+   public Object get(String fieldName)
+   {
+	   try {
+			Field field = getClass().getDeclaredField(fieldName);
+			Class returnType = field.getClass();
+			if (isManager)
+			{
+				field.setAccessible(true);
+				return field.get(this);
+			}
+			else
+			{
+				boolean hasCacheField = false;
+				if (cacheable_fields!=null)
+				{
+					if (cacheable_fields.containsKey(fieldName))
+					{
+						hasCacheField = true;
+						Object o = cacheable_fields.get(fieldName);
+						if (o!=null)
+						{
+							return o;
+						}
+					}
+				}
+				String[] arguments = new String[1];
+				arguments[0] = fieldName;
+				String retdata = worker.invokeCommand("network", "get", arguments);
+				if (hasCacheField)
+				{
+					cacheable_fields.put(fieldName, retdata);
+				}
+				return retdata;
+			}
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	   return null;
+   }
+
 };
