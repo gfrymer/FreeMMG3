@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Vector;
 
 import simmcast.distribution.command.CommandPacketArrival;
 import simmcast.distribution.command.CommandProtocol;
@@ -24,15 +23,16 @@ public class Connection extends Thread implements Runnable {
 	private HashMap<Integer, Integer> acksMutex;
 	private HashMap<Integer,CommandProtocol> acks;
 	private DataInputStream is;
-	private DataInputStream is2;
+//	private DataInputStream is2;
 	private DataOutputStream os;
-	private Thread t2;
-	private CommunicationOutputStream os2;
+	private CommunicationStreams css;
 	private boolean connected;
 	private int connId;
 	private String description;
 
-	public Connection(int mConnId, String mDescription, DataInputStream mIs, DataOutputStream mOs, java.util.concurrent.LinkedBlockingQueue<CommandProtocol> mIn, DataInputStream mIs2, CommunicationOutputStream mOs2)
+	private static final String THREAD_PKT_PREFIX = "TH_PKT_";
+
+	public Connection(int mConnId, String mDescription, DataInputStream mIs, DataOutputStream mOs, java.util.concurrent.LinkedBlockingQueue<CommandProtocol> mIn, CommunicationStreams mCss)
 	{
 		connId = mConnId;
 		description = mDescription;
@@ -41,14 +41,14 @@ public class Connection extends Thread implements Runnable {
 		acks = new HashMap<Integer, CommandProtocol>();
 		is = mIs;
 		os = mOs;
-		is2 = mIs2;
-		os2 = mOs2;
+		//is2 = mIs2;
+		css = mCss;
 		connected = true;
 	}
 
 	public Connection(int mConnId, String mDescription, DataInputStream mIs, DataOutputStream mOs, java.util.concurrent.LinkedBlockingQueue<CommandProtocol> mIn)
 	{
-		this(mConnId,mDescription,mIs,mOs,mIn,null,null);
+		this(mConnId,mDescription,mIs,mOs,mIn,null);
 	}
 
 	public Connection(int mConnId, String mDescription, DataInputStream mIs, DataOutputStream mOs)
@@ -95,18 +95,19 @@ public class Connection extends Thread implements Runnable {
 
 	public String sendPacket(String where, double relativeTime_, simmcast.network.Packet p)
 	{
-		if (os2==null)
+		if (css==null)
 			return "Not connected to " + where;
-		DataOutputStream dos = os2.getOutputStream(where);
+		DataOutputStream dos = css.getOutputStream(where);
 		try {
 			CommandPacketArrival cpa = new CommandPacketArrival(description, relativeTime_, p);
 			String packetData = cpa.getParameters();
-			dos.writeInt(cpa.getCmdId());
-			dos.writeByte(cpa.getAction());
-			dos.writeInt(packetData.length());
-			dos.writeBytes(packetData);
-			dos.flush();
-
+			synchronized (dos) {
+				dos.writeInt(cpa.getCmdId());
+				dos.writeByte(cpa.getAction());
+				dos.writeInt(packetData.length());
+				dos.writeBytes(packetData);
+				dos.flush();
+			}
 			while (true)
 			{
 				CommandProtocol ack = waitForAck(cpa.getCmdId());
@@ -182,17 +183,19 @@ public class Connection extends Thread implements Runnable {
 
 	public boolean sendPacketOk(String where, int cmdId)
 	{
-		if (os2==null)
+		if (css==null)
 			return true;
-		DataOutputStream dos = os2.getOutputStream(where);
+		DataOutputStream dos = css.getOutputStream(where);
 		try {
 			CommandProtocol cp = new CommandProtocol(connId, cmdId, CommandProtocol.ACTION_OK, "");
 			String packetData = cp.getParameters();
-			dos.writeInt(cp.getCmdId());
-			dos.writeByte(cp.getAction());
-			dos.writeInt(packetData.length());
-			dos.writeBytes(packetData);
-			dos.flush();
+			synchronized (dos) {
+				dos.writeInt(cp.getCmdId());
+				dos.writeByte(cp.getAction());
+				dos.writeInt(packetData.length());
+				dos.writeBytes(packetData);
+				dos.flush();
+			}
 			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -222,15 +225,17 @@ public class Connection extends Thread implements Runnable {
 
 	public void disconnect()
 	{
+		if (!connected) {
+			return;
+		}
 		connected = false;
 		try {
 			interrupt();
 			is.close();
 			os.close();
-			if (is2!=null)
+			if (css!=null)
 			{
-				is2.close();
-				t2.interrupt();
+				css.disconnect();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -244,26 +249,13 @@ public class Connection extends Thread implements Runnable {
 	}
 
 	public void run() {
-		if (is2!=null)
-		{
-			t2 = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					while (connected)
-					{
-						receive(is2);
-					}
-				}
-			});
-			t2.start();
-		}
 		while (connected)
 		{
 			receive(is);
 		}
 	}
 
-	private void receive(DataInputStream instr)
+	public void receive(DataInputStream instr)
 	{
 		CommandProtocol cp = null;
 		try

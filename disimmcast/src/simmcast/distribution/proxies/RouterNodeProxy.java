@@ -13,9 +13,9 @@ public class RouterNodeProxy extends NodeProxy implements RouterNodeInterface {
 	}
 
 	public RouterNodeProxy(Network mNetwork, String mLabel, int mNetworkId,
-			int mClientId, String mClientDescription)
+			int mWorkerId, String mWorkerDescription)
 			throws ClassNotFoundException {
-		super(mNetwork, mLabel, mNetworkId, mClientId, mClientDescription);
+		super(mNetwork, mLabel, mNetworkId, mWorkerId, mWorkerDescription);
 	}
 
 	@Override

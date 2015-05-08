@@ -23,9 +23,9 @@ public class CommandInvoke extends CommandProtocol {
 	private String function;
 	private String[] arguments;
 
-	public CommandInvoke(int mClientId, int mCmdId, byte mAction, String mParameter)
+	public CommandInvoke(int mWorkerId, int mCmdId, byte mAction, String mParameter)
 	{
-		super(mClientId, mCmdId, mAction, mParameter);
+		super(mWorkerId, mCmdId, mAction, mParameter);
 		init(mCmdId, mAction, mParameter);
 	}
 

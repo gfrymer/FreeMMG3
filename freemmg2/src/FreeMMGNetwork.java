@@ -31,7 +31,11 @@ public class FreeMMGNetwork extends Network
 		cacheable_fields.put("cell_height", null);
 		cacheable_fields.put("soi_radius", null);
 		cacheable_fields.put("latency_mean", null);
+
+		beginTime = System.currentTimeMillis();
 	}
+
+	public long beginTime;
 
 	public static PacketType PTC_POSITION = new PacketType("PTC_POSITION");
 	public static PacketType CTP_UPDATE   = new PacketType("CTP_UPDATE");
@@ -191,20 +195,21 @@ public class FreeMMGNetwork extends Network
 
 		globalCount[type]++;
 		
-		if (globalCount[type] == WHN)
+		if (globalCount[type] == getAsInt("WHN"))
 		{
-			globalMeanOfMean  [type] = globalMeanOfMean  [type] / (double) WHN;
-			globalMeanOfStdDev[type] = globalMeanOfStdDev[type] / (double) WHN;
-			globalMeanOfMax   [type] = globalMeanOfMax   [type] / (double) WHN;
+			globalMeanOfMean  [type] = globalMeanOfMean  [type] / getAsDouble("WHN");
+			globalMeanOfStdDev[type] = globalMeanOfStdDev[type] / getAsDouble("WHN");
+			globalMeanOfMax   [type] = globalMeanOfMax   [type] / getAsDouble("WHN");
 			
-			globalAcumOfMean    [type] = globalAcumOfMean  [type] - (WHN * globalMeanOfMean  [type] * globalMeanOfMean  [type]);
-			globalAcumOfStdDev  [type] = globalAcumOfStdDev[type] - (WHN * globalMeanOfStdDev[type] * globalMeanOfStdDev[type]);
-			globalAcumOfMax     [type] = globalAcumOfMax   [type] - (WHN * globalMeanOfMax   [type] * globalMeanOfMax   [type]);
+			globalAcumOfMean    [type] = globalAcumOfMean  [type] - (getAsInt("WHN") * globalMeanOfMean  [type] * globalMeanOfMean  [type]);
+			globalAcumOfStdDev  [type] = globalAcumOfStdDev[type] - (getAsInt("WHN") * globalMeanOfStdDev[type] * globalMeanOfStdDev[type]);
+			globalAcumOfMax     [type] = globalAcumOfMax   [type] - (getAsInt("WHN") * globalMeanOfMax   [type] * globalMeanOfMax   [type]);
 
-			globalStdDevOfMean  [type] = Math.sqrt(globalAcumOfMean  [type] / (double) WHN);
-			globalStdDevOfStdDev[type] = Math.sqrt(globalAcumOfStdDev[type] / (double) WHN);
-			globalStdDevOfMax   [type] = Math.sqrt(globalAcumOfMax   [type] / (double) WHN);
+			globalStdDevOfMean  [type] = Math.sqrt(globalAcumOfMean  [type] / getAsDouble("WHN"));
+			globalStdDevOfStdDev[type] = Math.sqrt(globalAcumOfStdDev[type] / getAsDouble("WHN"));
+			globalStdDevOfMax   [type] = Math.sqrt(globalAcumOfMax   [type] / getAsDouble("WHN"));
 			
+			out.println("Time: " + (beginTime - System.currentTimeMillis()));
 			out.println("Medias do tipo " + nomesDosResultados[type]);
 			out.println("Mean   >> mean = " + globalMeanOfMean  [type] + ", std_dev = " + globalStdDevOfMean  [type] + ", max = " + globalMaxOfMean  [type]);
 			out.println("StdDev >> mean = " + globalMeanOfStdDev[type] + ", std_dev = " + globalStdDevOfStdDev[type] + ", max = " + globalMaxOfStdDev[type]);

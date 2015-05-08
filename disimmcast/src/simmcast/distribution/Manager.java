@@ -63,12 +63,12 @@ public class Manager implements Runnable {
     			int totConnections = 0;
 	    		while (true)
 	    		{
-	    			Connection clientConn = commServer.listen(totConnections, in);
-	    			if (clientConn!=null)
+	    			Connection workerConn = commServer.listen(totConnections, in);
+	    			if (workerConn!=null)
 	    			{
 	    				totConnections++;
-		    			connections.add(clientConn);
-						System.out.println("New connection from " + clientConn.getDescription());
+		    			connections.add(workerConn);
+						System.out.println("New connection from " + workerConn.getDescription());
 						System.out.println("Total connections: " + totConnections);
 	    			}
 	    			else
@@ -124,10 +124,10 @@ public class Manager implements Runnable {
     	}
     }
 
-    public boolean invokeCommand(int clientId, int addressId, String function, String[] arguments)
+    public boolean invokeCommand(int workerId, int addressId, String function, String[] arguments)
     {
     	CommandInvoke ci = new CommandInvoke(addressId, function, arguments);
-    	String err = connections.get(clientId).sendCmd(ci);
+    	String err = connections.get(workerId).sendCmd(ci);
     	if (err==null)
     	{
     		return true;
@@ -139,10 +139,10 @@ public class Manager implements Runnable {
     	}
     }
 
-    public boolean invokeCommand(int clientId, String name, String function, String[] arguments)
+    public boolean invokeCommand(int workerId, String name, String function, String[] arguments)
     {
     	CommandInvoke ci = new CommandInvoke(name, function, arguments);
-    	String err = connections.get(clientId).sendCmd(ci);
+    	String err = connections.get(workerId).sendCmd(ci);
     	if (err==null)
     	{
     		return true;
@@ -154,10 +154,10 @@ public class Manager implements Runnable {
     	}
     }
 
-    public boolean resumeProcess(int clientId, int addressId)
+    public boolean resumeProcess(int workerId, int addressId)
     {
     	CommandResumeProcess crp = new CommandResumeProcess(addressId, network.getSimulationScheduler().currentTime());
-    	String err = connections.get(clientId).sendCmd(crp);
+    	String err = connections.get(workerId).sendCmd(crp);
     	if (err==null)
     	{
     		return true;
@@ -169,10 +169,10 @@ public class Manager implements Runnable {
     	}
     }
 
-    public boolean terminateProcess(int clientId, int addressId)
+    public boolean terminateProcess(int workerId, int addressId)
     {
     	CommandTerminateProcess ctp = new CommandTerminateProcess(addressId);
-    	String err = connections.get(clientId).sendCmd(ctp);
+    	String err = connections.get(workerId).sendCmd(ctp);
     	if (err==null)
     	{
     		return true;
@@ -231,24 +231,29 @@ public class Manager implements Runnable {
     	String ret = cmd.run(network);
     	if (ret==null)
     	{
-    		connections.get(cmd.getClientId()).sendOk(cmd.getCmdId());
+    		connections.get(cmd.getWorkerId()).sendOk(cmd.getCmdId());
     	}
     	else
     	{
     		if (ret.startsWith(CommandProtocol.OK_PREFIX))
     		{
-        		connections.get(cmd.getClientId()).sendOk(cmd.getCmdId(),ret.substring(CommandProtocol.OK_PREFIX.length()));
+        		connections.get(cmd.getWorkerId()).sendOk(cmd.getCmdId(),ret.substring(CommandProtocol.OK_PREFIX.length()));
     		}
     		else
     		{
-        		connections.get(cmd.getClientId()).sendError(cmd.getCmdId(),ret);
+        		connections.get(cmd.getWorkerId()).sendError(cmd.getCmdId(),ret);
     		}
     	}
     }
 
-    public String getClientDescription(int clientId)
+    public String getWorkerDescription(int workerId)
     {
-    	return connections.get(clientId).getDescription();
+    	return connections.get(workerId).getDescription();
+    }
+
+    public int getWorkerCount()
+    {
+    	return connections.size();
     }
 
 	public void run()

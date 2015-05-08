@@ -13,18 +13,18 @@ public class ProcessProxy implements ProcessInterface {
 	private int pid = pidGen++;
 
 	private Network network;
-	private int clientId;
+	private int workerId;
 	double lastSchedule = 0.0;
 
-	public ProcessProxy(Network mNetwork, int mClientId)
+	public ProcessProxy(Network mNetwork, int mWorkerId)
 	{
 		network = mNetwork;
-		clientId = mClientId;
+		workerId = mWorkerId;
 	}
 
 	public void resumeProcess()
 	{
-		network.getServer().resumeProcess(clientId, pid);
+		network.getManager().resumeProcess(workerId, pid);
 	}
 
 	public double getLastSchedule() {
@@ -43,12 +43,12 @@ public class ProcessProxy implements ProcessInterface {
 		pid = newpid;
 	}
 
-	public int getClientId() {
-		return clientId;
+	public int getWorkerId() {
+		return workerId;
 	}
 
 	public void interrupt() {
-		network.getServer().terminateProcess(clientId, pid);
+		network.getManager().terminateProcess(workerId, pid);
 	}
 
 	public boolean isRunning() {

@@ -40,7 +40,7 @@ public class CommandProtocol {
 
 	public static final String OK_PREFIX = "OK_";
 
-	protected int clientId;
+	protected int workerId;
 	protected int cmdId;
 	protected byte action;
 	protected String parameters;
@@ -52,17 +52,17 @@ public class CommandProtocol {
 		return nextCmdId++;
 	}
 
-	public CommandProtocol(int mClientId, int mCmdId, byte mAction, String mParameter)
+	public CommandProtocol(int mWorkerId, int mCmdId, byte mAction, String mParameter)
 	{
-		clientId = mClientId;
+		workerId = mWorkerId;
 		cmdId = mCmdId;
 		action = mAction;
 		parameters = mParameter;
 	}
 
-	public int getClientId()
+	public int getWorkerId()
 	{
-		return clientId;
+		return workerId;
 	}
 
 	public int getCmdId()
@@ -86,6 +86,15 @@ public class CommandProtocol {
 			return new JsonParser().parse(parameters).getAsJsonObject();
 		} catch (JsonSyntaxException ex)
 		{
+			System.out.println(parameters);
+			System.out.println(parameters.length());
+			ex.printStackTrace();
+			return null;
+		}
+	    catch (Exception ex)
+		{
+			System.out.println(parameters);
+			ex.printStackTrace();
 			return null;
 		}
 	}
@@ -95,7 +104,7 @@ public class CommandProtocol {
 		return ACTIONS_STRINGS[action - 1] + " - " + parameters;
 	}
 
-	public static CommandProtocol createFromAction(int clientid, int cmdid, byte action, String parameters)
+	public static CommandProtocol createFromAction(int workerId, int cmdid, byte action, String parameters)
 	{
 		CommandProtocol cp = null;
 
@@ -112,7 +121,7 @@ public class CommandProtocol {
 		        if (constructor!=null)
 		        {
 			        args = new Object[4];
-		        	args[0] = clientid;
+		        	args[0] = workerId;
 		        	args[1] = cmdid;
 		        	args[2] = action;
 		        	args[3] = parameters;
@@ -146,7 +155,7 @@ public class CommandProtocol {
 		}
 		if ((action==ACTION_OK) || (action==ACTION_ERROR))
 		{
-			return new CommandProtocol(clientid, cmdid, action, parameters);
+			return new CommandProtocol(workerId, cmdid, action, parameters);
 		}
 		return null;
 	}

@@ -22,7 +22,7 @@ package simmcast.stream;
 
 import java.io.IOException;
 
-import simmcast.distribution.CloneOnClient;
+import simmcast.distribution.CloneOnWorker;
 
 import arjuna.JavaSim.Distributions.RandomStream;
 
@@ -34,7 +34,7 @@ import arjuna.JavaSim.Distributions.RandomStream;
  *
  * @author Hisham H. Muhammad
  */
-public class FixedStream extends RandomStream implements CloneOnClient {
+public class FixedStream extends RandomStream implements CloneOnWorker {
 
    double number;
 

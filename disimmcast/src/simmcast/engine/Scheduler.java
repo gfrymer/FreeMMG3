@@ -254,18 +254,18 @@ public class Scheduler extends Thread implements SchedulerInterface {
 		}
 		if (willResume.size()>0)
 		{
-			System.out.println("Resuming time " + now + " processes: " + willResume.size());
+			System.out.print("Resuming time " + now + " processes: " + willResume.size() + " ");
 			Iterator<ProcessInterface> pi = willResume.iterator();
 			while (pi.hasNext())
 			{
 				ProcessInterface next = pi.next();
-//				System.out.print(next.getPid() + " ");
+				System.out.print(next.getPid() + ",");
 				synchronized (running) {
 					running.add(next);
 				}
 				next.resumeProcess();
 			}
-//			System.out.println();
+			System.out.println();
 			return true;
 		}
 		else

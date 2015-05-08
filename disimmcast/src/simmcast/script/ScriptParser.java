@@ -37,9 +37,10 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import simmcast.distribution.CloneOnClient;
+import simmcast.distribution.CloneOnWorker;
 import simmcast.distribution.interfaces.NodeInterface;
 import simmcast.distribution.interfaces.RouterNodeInterface;
+import simmcast.distribution.proxies.NetworkProxy;
 import simmcast.distribution.proxies.NodeProxy;
 import simmcast.distribution.proxies.ObjectProxy;
 import simmcast.distribution.proxies.RouterNodeProxy;
@@ -91,6 +92,9 @@ public class ScriptParser {
     * later passed on to the network object.
     */
    Network network;
+   
+   private static final String NETWORK_OBJ = "network";
+   private static final String NETWORK_REMOTE_OBJ = "networkRemote";
 
    /**
     * A simple "symbol table", where objects created during
@@ -149,11 +153,11 @@ public class ScriptParser {
 
    /**
     * This is a handle to the reflected Class object of the
-    * CloneOnClient interface. This is provided for efficiency, since lookup
+    * CloneOnWorker interface. This is provided for efficiency, since lookup
     * for this class is frequent, as part of the type checking
     * mechanism of this configuration file parser.
     */
-   private Class cloneOnClientInterface;
+   private Class cloneOnWorkerInterface;
 
    /**
     * A temporary holder for the value of the global random seed.
@@ -240,7 +244,7 @@ public class ScriptParser {
          groupClass = Class.forName("simmcast.group.Group");
          //streamClass = Class.forName("arjuna.JavaSim.Distributions.RandomStream");
          stringClass = Class.forName("java.lang.String");
-         cloneOnClientInterface = Class.forName("simmcast.distribution.CloneOnClient");
+         cloneOnWorkerInterface = Class.forName("simmcast.distribution.CloneOnWorker");
          nodeInterface = Class.forName("simmcast.distribution.interfaces.NodeInterface");
          routerNodeClass = Class.forName("simmcast.node.RouterNode");
          routerNodeInterface = Class.forName("simmcast.distribution.interfaces.RouterNodeInterface");
@@ -252,7 +256,14 @@ public class ScriptParser {
          macros = new MacroPreprocessor();
          macros.defineMacro("!UNLIMITED","0");
          symbols = new Hashtable();
-         symbols.put("network", network);
+         symbols.put(NETWORK_OBJ, network);
+         
+         NetworkProxy[] npArr = new NetworkProxy[network.getManager().getWorkerCount()];
+         for (int i=0;i<network.getManager().getWorkerCount();i++)
+         {
+        	 npArr[i] = new NetworkProxy(network, NETWORK_OBJ, i, network.getManager().getWorkerDescription(i));
+         }
+         symbols.put(NETWORK_REMOTE_OBJ, npArr);
          if (arguments_ != null) {
             for (int i=0; i < Array.getLength(arguments_); i++) {
                String strI = Integer.toString(i);
@@ -468,7 +479,7 @@ public class ScriptParser {
             		 throw new Exception("Parameter "+onworkerlabel+" must be instance of NodeProxy");
             	 NodeProxy nodeProxy = (NodeProxy) nodeobject;
 
-            	 ObjectProxy objectProxy = new ObjectProxy(nodeProxy.getClientId(),network,label,className,arguments);
+            	 ObjectProxy objectProxy = new ObjectProxy(nodeProxy.getWorkerId(),network,label,className,arguments);
            		 newObject = objectProxy;
              }
              else
@@ -534,23 +545,37 @@ public class ScriptParser {
          Object object = symbols.get(label);
          if (object == null)
             throw new InvalidFileException("Undeclared node "+label);
-         if (object instanceof NodeProxy)
+         Object[] oarr;
+         if (object instanceof Object[])
          {
-	         Method method = findMethod(((NodeProxy)object).getClassType(), function, passedArguments.length);
-	         Object[] arguments = generateArguments(method.getParameterTypes(), passedArguments);
-	         ((NodeProxy)object).invoke(function, parseObjectArgs(arguments,passedArguments));
-         }
-         else if (object instanceof ObjectProxy)
-         {
-	         Method method = findMethod(((ObjectProxy)object).getClassType(), function, passedArguments.length);
-	         Object[] arguments = generateArguments(method.getParameterTypes(), passedArguments);
-	         ((ObjectProxy)object).invoke(function, parseObjectArgs(arguments,passedArguments));
+        	 oarr = (Object[]) object;
          }
          else
          {
-	         Method method = findMethod(object, function, passedArguments.length);
-	         Object[] arguments = generateArguments(method.getParameterTypes(), passedArguments);
-	         method.invoke(object, arguments);
+        	 oarr = new Object[1];
+        	 oarr[0] = object;
+         }
+         for (int j=0;j<oarr.length;j++)
+         {
+        	 object = oarr[j];
+	         if (object instanceof NodeProxy)
+	         {
+		         Method method = findMethod(((NodeProxy)object).getClassType(), function, passedArguments.length);
+		         Object[] arguments = generateArguments(method.getParameterTypes(), passedArguments);
+		         ((NodeProxy)object).invoke(function, parseObjectArgs(arguments,passedArguments));
+	         }
+	         else if (object instanceof ObjectProxy)
+	         {
+		         Method method = findMethod(((ObjectProxy)object).getClassType(), function, passedArguments.length);
+		         Object[] arguments = generateArguments(method.getParameterTypes(), passedArguments);
+		         ((ObjectProxy)object).invoke(function, parseObjectArgs(arguments,passedArguments));
+	         }
+	         else
+	         {
+		         Method method = findMethod(object, function, passedArguments.length);
+		         Object[] arguments = generateArguments(method.getParameterTypes(), passedArguments);
+		         method.invoke(object, arguments);
+	         }
          }
       // Exception handlers
       } catch (InvalidFileException e) {
@@ -798,17 +823,17 @@ public class ScriptParser {
       try {
          String[] arguments = new String[objects_.length];
          for (int i = 0; i < objects_.length; i++) {
-        	if (cloneOnClientInterface.isAssignableFrom(objects_[i].getClass()))
+        	if (cloneOnWorkerInterface.isAssignableFrom(objects_[i].getClass()))
         	{
-        		argument = "(" + arguments_[i] + "," + objects_[i].getClass().getName() + "," + ((CloneOnClient) objects_[i]).getConstructorParameters() + ")";
+        		argument = "(" + arguments_[i] + "," + objects_[i].getClass().getName() + "," + ((CloneOnWorker) objects_[i]).getConstructorParameters() + ")";
         	}
         	else if (objects_[i] instanceof NodeProxy)
         	{
-        		argument = "{" + arguments_[i] + "," + ((NodeProxy) objects_[i]).getNetworkId() + "," + ((NodeProxy) objects_[i]).getClientId() + "," + ((NodeProxy) objects_[i]).getClientDescription() + "}"; 
+        		argument = "{" + arguments_[i] + "," + ((NodeProxy) objects_[i]).getNetworkId() + "," + ((NodeProxy) objects_[i]).getWorkerId() + "," + ((NodeProxy) objects_[i]).getWorkerDescription() + "}"; 
         	}
         	else if (objects_[i] instanceof ObjectProxy)
         	{
-        		argument = "{" + arguments_[i] + "," + ((ObjectProxy) objects_[i]).getClientId() + "," + ((ObjectProxy) objects_[i]).getClientDescription() + "}"; 
+        		argument = "{" + arguments_[i] + "," + ((ObjectProxy) objects_[i]).getWorkerId() + "," + ((ObjectProxy) objects_[i]).getWorkerDescription() + "}"; 
         	}
         	else if (objects_[i].getClass().isArray())
         	{

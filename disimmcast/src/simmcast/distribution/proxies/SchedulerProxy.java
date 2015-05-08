@@ -81,19 +81,19 @@ public class SchedulerProxy implements SchedulerInterface {
 				}
 			}
 		}
-		network.getClient().processBlockedOrFinished(pid);
+		network.getWorker().processBlockedOrFinished(pid);
 	}
 
 	public void activateAt(double relativeTime_, ProcessInterface process_) {
-		network.getClient().activateAt(relativeTime_, process_);
+		network.getWorker().activateAt(relativeTime_, process_);
 	}
 
 	public void activateNow(ProcessInterface process_) {
-		network.getClient().activateAt(0, process_);
+		network.getWorker().activateAt(0, process_);
 	}
 
 	public void addToThreadPool(ProcessInterface process_) {
-		if (network.getClient().addToThreadPool(process_))
+		if (network.getWorker().addToThreadPool(process_))
 		{
 			threadPool.put(process_.getPid(), process_);
 		}
@@ -115,7 +115,7 @@ public class SchedulerProxy implements SchedulerInterface {
 	public void removeFromThreadPool(ProcessInterface process_) {
 		if (!started)
 			return;
-		if (network.getClient().removeFromPool(process_.getPid()))
+		if (network.getWorker().removeFromPool(process_.getPid()))
 		{
 			threadPool.remove(process_.getPid());
 		}

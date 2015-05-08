@@ -10,9 +10,9 @@ public class CommandBlockedOrFinished extends CommandProtocol {
 
 	private int networkId;
 
-	public CommandBlockedOrFinished(int mClientId, int mCmdId, byte mAction, String mParameter)
+	public CommandBlockedOrFinished(int mWorkerId, int mCmdId, byte mAction, String mParameter)
 	{
-		super(mClientId, mCmdId, mAction, mParameter);
+		super(mWorkerId, mCmdId, mAction, mParameter);
 		JsonObject jo = getJsonParameters();
 		if (jo!=null)
 		{

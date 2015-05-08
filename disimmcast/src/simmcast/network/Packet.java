@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import simmcast.distribution.CloneOnClient;
+import simmcast.distribution.CloneOnWorker;
 import simmcast.distribution.command.CommandProtocol;
 
 
@@ -23,7 +23,7 @@ import simmcast.distribution.command.CommandProtocol;
  *
  * @author Hisham H. Muhammad
  */
-public class Packet extends Queueable implements Cloneable, CloneOnClient {
+public class Packet extends Queueable implements Cloneable, CloneOnWorker {
 
    // *****************************************************
    // ATTRIBUTES
@@ -352,7 +352,14 @@ public class Packet extends Queueable implements Cloneable, CloneOnClient {
 		gson.addProperty(SIZE, size);
 		gson.addProperty(SEQUENCE, seq);
 		gson.addProperty(CLASS, data.getClass().getName());
-		gson.addProperty(DATA, data.toString());
+		if (data instanceof CloneOnWorker)
+		{
+			gson.addProperty(DATA, ((CloneOnWorker) data).getConstructorParameters());
+		}
+		else
+		{
+			gson.addProperty(DATA, data.toString());			
+		}
 		return gson.toString();
 	}
 
@@ -365,23 +372,32 @@ public class Packet extends Queueable implements Cloneable, CloneOnClient {
 		long sequence = jo.get(SEQUENCE).getAsLong();
 		String dataClassName = jo.get(CLASS).getAsString();
 		try {
-			Class r = Class.forName(dataClassName);
-			Constructor[] c = r.getConstructors();
 			Object n = null;
-			for (int i=0;i<c.length;i++)
+			Class r = Class.forName(dataClassName);
+			try {
+				java.lang.reflect.Method mt = r.getMethod("fromJson", JsonObject.class);
+				n = mt.invoke(null, new JsonParser().parse(jo.get(DATA).getAsString()).getAsJsonObject());
+			} catch (NoSuchMethodException ne)
 			{
-				Type[] pt = c[i].getParameterTypes();
-				if (pt.length==1)
+			}
+			if (n==null)
+			{
+				Constructor[] c = r.getConstructors();
+				for (int i=0;i<c.length;i++)
 				{
-					if (pt[0].equals(String.class))
+					Type[] pt = c[i].getParameterTypes();
+					if (pt.length==1)
 					{
-						n = c[i].newInstance(jo.get(DATA).getAsString());
-						break;
-					}
-					if (pt[0].equals(JsonObject.class))
-					{
-						n = c[i].newInstance(new JsonParser().parse(jo.get(DATA).getAsString()).getAsJsonObject());
-						break;
+						if (pt[0].equals(String.class))
+						{
+							n = c[i].newInstance(jo.get(DATA).getAsString());
+							break;
+						}
+						if (pt[0].equals(JsonObject.class))
+						{
+							n = c[i].newInstance(new JsonParser().parse(jo.get(DATA).getAsString()).getAsJsonObject());
+							break;
+						}
 					}
 				}
 			}

@@ -66,8 +66,8 @@ public class LowerLayer
 			if ( (now - op.orig_time) >= resend_timeout)
 			{
 				myThread.send(op.to_, op.type_, op.size_, op.data_);
-				     if (op.type_ == FreeMMGNetwork.CTB_UPDATE) vetor[UP_BACKUPS] += op.size_;
-				else if (op.type_ == FreeMMGNetwork.CTC_SYNC)   vetor[UP_SYNC]    += op.size_;
+				     if (op.type_.equals(FreeMMGNetwork.CTB_UPDATE)) vetor[UP_BACKUPS] += op.size_;
+				else if (op.type_.equals(FreeMMGNetwork.CTC_SYNC))   vetor[UP_SYNC]    += op.size_;
 				op.orig_time = now;
 			}
 		}
@@ -85,10 +85,10 @@ public class LowerLayer
 		
 		myThread.send(to_, type_, size_, my_data);
 
-		     if (type_ == FreeMMGNetwork.CTB_UPDATE)  vetor[UP_BACKUPS]   += size_;
-		else if (type_ == FreeMMGNetwork.CTC_SYNC)    vetor[UP_SYNC]      += size_;
-		else if (type_ == FreeMMGNetwork.CTP_UPDATE)  vetor[UP_PLAYERS]   += size_;
-		else if (type_ == FreeMMGNetwork.ICTC_UPDATE) vetor[UP_NEIGHBORS] += size_;
+		     if (type_.equals(FreeMMGNetwork.CTB_UPDATE))  vetor[UP_BACKUPS]   += size_;
+		else if (type_.equals(FreeMMGNetwork.CTC_SYNC))    vetor[UP_SYNC]      += size_;
+		else if (type_.equals(FreeMMGNetwork.CTP_UPDATE))  vetor[UP_PLAYERS]   += size_;
+		else if (type_.equals(FreeMMGNetwork.ICTC_UPDATE)) vetor[UP_NEIGHBORS] += size_;
 		
 		if (reliable) notAckedPackets.add(my_op);
 	}
@@ -102,21 +102,21 @@ public class LowerLayer
 			Packet     p    = myThread.receive();
 			PacketType type = p.getType();
 			
-			     if (type == FreeMMGNetwork.CTB_UPDATE)   vetor[DOWN_BACKUPS]   += p.getSize();
-			else if (type == FreeMMGNetwork.CTC_SYNC)     vetor[DOWN_SYNC]      += p.getSize();
-			else if (type == FreeMMGNetwork.PTC_POSITION) vetor[DOWN_PLAYERS]   += p.getSize();
-			else if (type == FreeMMGNetwork.ICTC_UPDATE)  vetor[DOWN_NEIGHBORS] += p.getSize();
-			else if (type == FreeMMGNetwork.BTC_ACK)      vetor[DOWN_BACKUPS]   += p.getSize();
-			else if (type == FreeMMGNetwork.CTC_ACK)      vetor[DOWN_SYNC]      += p.getSize();
+			     if (type.equals(FreeMMGNetwork.CTB_UPDATE))   vetor[DOWN_BACKUPS]   += p.getSize();
+			else if (type.equals(FreeMMGNetwork.CTC_SYNC))     vetor[DOWN_SYNC]      += p.getSize();
+			else if (type.equals(FreeMMGNetwork.PTC_POSITION)) vetor[DOWN_PLAYERS]   += p.getSize();
+			else if (type.equals(FreeMMGNetwork.ICTC_UPDATE))  vetor[DOWN_NEIGHBORS] += p.getSize();
+			else if (type.equals(FreeMMGNetwork.BTC_ACK))      vetor[DOWN_BACKUPS]   += p.getSize();
+			else if (type.equals(FreeMMGNetwork.CTC_ACK))      vetor[DOWN_SYNC]      += p.getSize();
 		
 			boolean reliable = false;
-			     if (type == FreeMMGNetwork.CTC_SYNC)   reliable = true;
-			else if (type == FreeMMGNetwork.CTB_UPDATE) reliable = true;
-			else if (type == FreeMMGNetwork.BTC_ACK)    reliable = true;
-			else if (type == FreeMMGNetwork.CTC_ACK)    reliable = true;
+			     if (type.equals(FreeMMGNetwork.CTC_SYNC))   reliable = true;
+			else if (type.equals(FreeMMGNetwork.CTB_UPDATE)) reliable = true;
+			else if (type.equals(FreeMMGNetwork.BTC_ACK))    reliable = true;
+			else if (type.equals(FreeMMGNetwork.CTC_ACK))    reliable = true;
 			if (reliable == false) return p;
 	
-			if ( (type == FreeMMGNetwork.BTC_ACK) || (type == FreeMMGNetwork.CTC_ACK) )
+			if ( (type.equals(FreeMMGNetwork.BTC_ACK)) || (type.equals(FreeMMGNetwork.CTC_ACK)) )
 			{
 				int seq = (Integer) p.getData();
 				synchronized (this)
@@ -140,12 +140,12 @@ public class LowerLayer
 				Pacote my_pacote = new Pacote();
 				for (int i = 1; i < real_pacote.size(); i++) my_pacote.add(real_pacote.get(i));
 				
-				PacketType t = (type == FreeMMGNetwork.CTC_SYNC) ? FreeMMGNetwork.CTC_ACK : FreeMMGNetwork.BTC_ACK;
+				PacketType t = (type.equals(FreeMMGNetwork.CTC_SYNC)) ? FreeMMGNetwork.CTC_ACK : FreeMMGNetwork.BTC_ACK;
 
 				myThread.send(p.getSource(), t, FreeMMGNetwork.HEADER_LEN + 2, seq);
 				
-				     if (type == FreeMMGNetwork.CTC_SYNC)   vetor[UP_SYNC]    += FreeMMGNetwork.HEADER_LEN + 2;
-				else if (type == FreeMMGNetwork.CTB_UPDATE) vetor[UP_BACKUPS] += FreeMMGNetwork.HEADER_LEN + 2;
+				     if (type.equals(FreeMMGNetwork.CTC_SYNC))   vetor[UP_SYNC]    += FreeMMGNetwork.HEADER_LEN + 2;
+				else if (type.equals(FreeMMGNetwork.CTB_UPDATE)) vetor[UP_BACKUPS] += FreeMMGNetwork.HEADER_LEN + 2;
 
 				return new Packet(p.getSource(), p.getDestination(), p.getType(), p.getSize(), my_pacote);
 			}

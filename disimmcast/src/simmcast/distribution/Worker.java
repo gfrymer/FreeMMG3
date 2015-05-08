@@ -90,11 +90,11 @@ public class Worker implements Runnable {
 
    /**
     * This is a handle to the reflected Class object of the
-    * CloneOnClient interface. This is provided for efficiency, since lookup
+    * CloneOnWorker interface. This is provided for efficiency, since lookup
     * for this class is frequent, as part of the type checking
     * mechanism of this configuration file parser.
     */
-   private Class cloneOnClientInterface;
+   private Class cloneOnWorkerInterface;
 
    private Network network;
    
@@ -258,7 +258,7 @@ public class Worker implements Runnable {
         //streamClass = Class.forName("arjuna.JavaSim.Distributions.RandomStream");
         stringClass = Class.forName("java.lang.String");
         proxyableInterface = Proxyable.class;
-        cloneOnClientInterface = CloneOnClient.class;
+        cloneOnWorkerInterface = CloneOnWorker.class;
 
 		CommandProtocol cmd = in.take();
 		while (cmd.getAction()!=CommandProtocol.ACTION_START_SIMULATION)
@@ -274,7 +274,7 @@ public class Worker implements Runnable {
 			        }
 
 			        if (!nodeClass.isAssignableFrom(classType)) {
-			        	connection.sendError(cc.getCmdId(), "Create on Client only for node objects, use Create Object instead");
+			        	connection.sendError(cc.getCmdId(), "Create on Worker only for node objects, use Create Object instead");
 			        	break;
 			        }
 
@@ -433,7 +433,7 @@ public class Worker implements Runnable {
 	               Object object = symbols.get(argument);
 	               if (object==null)
 	               {
-	            	   if (argument.startsWith("("))//cloneOnClientInterface.isAssignableFrom(classType))
+	            	   if (argument.startsWith("("))//cloneOnWorkerInterface.isAssignableFrom(classType))
 	            	   {
 	            		   String args = argument.substring(1,argument.length()-1);
 	            		   String[] params = args.split(",");

@@ -150,6 +150,7 @@ abstract public class Process extends Thread implements ProcessInterface {
 		if (started) {
 			synchronized (mutex) {
 				counter++;
+System.out.println(this.getName());
 				// FIXME Is this correct? Check.
 				if (counter > 0) // was: counter >= 0 
 					mutex.notify();

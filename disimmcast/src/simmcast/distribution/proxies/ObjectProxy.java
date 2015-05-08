@@ -10,38 +10,38 @@ import simmcast.node.EventScheduler;
 public class ObjectProxy implements Proxyable {
 
 	private Network network;
-	private int clientId;
-	private Class classType;
-	private String clientDescription;
+	private int workerId;
+	protected Class classType;
+	private String workerDescription;
 	private String label;
 
-	public ObjectProxy(int mClientId, Network mNetwork, String mLabel, String className, String[] arguments) throws ClassNotFoundException
+	public ObjectProxy(int mWorkerId, Network mNetwork, String mLabel, String className, String[] arguments) throws ClassNotFoundException
 	{
     	classType = Class.forName(className);
 		network = mNetwork;
     	label = mLabel;
-    	clientId = network.getServer().createObject(mClientId,label,className,arguments);
-    	clientDescription = network.getServer().getClientDescription(clientId);
+    	workerId = network.getManager().createObject(mWorkerId,label,className,arguments);
+    	workerDescription = network.getManager().getWorkerDescription(workerId);
 	}
 
-	public ObjectProxy(Network mNetwork, String mLabel, int mClientId, String mClientDescription) throws ClassNotFoundException
+	public ObjectProxy(Network mNetwork, String mLabel, int mWorkerId, String mWorkerDescription) throws ClassNotFoundException
 	{
 		network = mNetwork;
 		label = mLabel;
-		clientId = mClientId;
-		clientDescription = mClientDescription;
+		workerId = mWorkerId;
+		workerDescription = mWorkerDescription;
 	}
 
-	public int getClientId() {
-		return clientId;
+	public int getWorkerId() {
+		return workerId;
 	}
 
 	public String getName() {
 		return label;
 	}
 
-	public String getClientDescription() {
-		return clientDescription;
+	public String getWorkerDescription() {
+		return workerDescription;
 	}
 	public Class getClassType()
 	{
@@ -50,7 +50,7 @@ public class ObjectProxy implements Proxyable {
 
 	public boolean invoke(String function, String[] arguments)
 	{
-		network.getServer().invokeCommand(clientId, getName(), function, arguments);
+		network.getManager().invokeCommand(workerId, getName(), function, arguments);
 		return false;
 	}
 }

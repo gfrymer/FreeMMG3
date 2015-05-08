@@ -22,7 +22,7 @@ package simmcast.stream;
 
 import java.io.IOException;
 
-import simmcast.distribution.CloneOnClient;
+import simmcast.distribution.CloneOnWorker;
 import arjuna.JavaSim.Distributions.*;
 
 /**
@@ -33,28 +33,28 @@ import arjuna.JavaSim.Distributions.*;
  *
  * @author Hisham H. Muhammad
  */
-public class NormalStream extends arjuna.JavaSim.Distributions.NormalStream implements CloneOnClient {
+public class NormalStream extends arjuna.JavaSim.Distributions.NormalStream implements CloneOnWorker {
 
-	private String cloneOnClient;
+	private String cloneOnWorker;
 
 	public NormalStream(double m, double sd) {
 		super(m, sd);
-		cloneOnClient = "" + m + "," + sd;  
+		cloneOnWorker = "" + m + "," + sd;  
 	}
 
 	public NormalStream(double m, double sd, int StreamSelect) {
 		super(m, sd, StreamSelect);
-		cloneOnClient = "" + m + "," + sd + "," + StreamSelect;  
+		cloneOnWorker = "" + m + "," + sd + "," + StreamSelect;  
 	}
 
 	public NormalStream(double m, double sd, int StreamSelect, long MGSeed,
 			long LCGSeed) {
 		super(m, sd, StreamSelect, MGSeed, LCGSeed);
-		cloneOnClient = "" + m + "," + sd + "," + StreamSelect + "," + MGSeed + "," + LCGSeed;  
+		cloneOnWorker = "" + m + "," + sd + "," + StreamSelect + "," + MGSeed + "," + LCGSeed;  
 	}
 
 	public String getConstructorParameters() {
-		return cloneOnClient;
+		return cloneOnWorker;
 	}
 
 }

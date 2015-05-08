@@ -2,6 +2,7 @@ package simmcast.distribution.command;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,14 +19,15 @@ public class CommandPacketArrival extends CommandProtocol {
 	public final static String FROM_WORKER = "worker";
 	public final static String RELATIVE_TIME = "rtime";
 	public final static String PACKET = "packet";
+	public final static String PACKET_CLASS = "packet_class";
 
 	String fromWorker;
 	double relativeTime;
 	Packet packet;
 
-	public CommandPacketArrival(int mClientId, int mCmdId, byte mAction, String mParameter)
+	public CommandPacketArrival(int mWorkerId, int mCmdId, byte mAction, String mParameter)
 	{
-		super(mClientId, mCmdId, mAction, mParameter);
+		super(mWorkerId, mCmdId, mAction, mParameter);
 		JsonObject jo = getJsonParameters();
 		if (jo!=null)
 		{
@@ -33,9 +35,28 @@ public class CommandPacketArrival extends CommandProtocol {
 			relativeTime = jo.get(RELATIVE_TIME).getAsDouble();
 			try {
 				JsonObject po = new JsonParser().parse(jo.get(PACKET).getAsString()).getAsJsonObject();
-				packet = Packet.fromJson(po);
+				String className = jo.get(PACKET_CLASS).getAsString();
+				packet = null;
+				try {
+					Class r = Class.forName(className);
+					try {
+						java.lang.reflect.Method mt = r.getMethod("fromJson", JsonObject.class);
+						packet = (Packet) mt.invoke(null, po);
+					} catch (NoSuchMethodException ne) {
+					} catch (InvocationTargetException e) {
+					} catch (IllegalArgumentException e) {
+					} catch (IllegalAccessException e) {
+					}
+				} catch (ClassNotFoundException e) {
+				}
+				if (packet==null)
+				{
+					packet = Packet.fromJson(po);
+				}
 			} catch (JsonSyntaxException ex)
 			{
+				ex.printStackTrace();
+				System.out.println(jo.get(PACKET).getAsString());
 			}
 		}
 	}
@@ -50,6 +71,7 @@ public class CommandPacketArrival extends CommandProtocol {
 		gson.addProperty(FROM_WORKER, fromWorker);
 		gson.addProperty(RELATIVE_TIME, relativeTime);
 		gson.addProperty(PACKET, packet.getConstructorParameters());
+		gson.addProperty(PACKET_CLASS, packet.getClass().getName());
 		parameters = gson.toString();
 	}
 

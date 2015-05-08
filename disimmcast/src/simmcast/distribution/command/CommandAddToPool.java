@@ -5,9 +5,9 @@ import simmcast.network.Network;
 
 public class CommandAddToPool extends CommandProtocol {
 
-	public CommandAddToPool(int mClientId, int mCmdId, byte mAction, String mParameter)
+	public CommandAddToPool(int mWorkerId, int mCmdId, byte mAction, String mParameter)
 	{
-		super(mClientId, mCmdId, mAction, mParameter);
+		super(mWorkerId, mCmdId, mAction, mParameter);
 	}
 
 	public CommandAddToPool()
@@ -17,7 +17,7 @@ public class CommandAddToPool extends CommandProtocol {
 
 	public String run(Network network)
 	{
-		ProcessProxy pp = new ProcessProxy(network, getClientId());
+		ProcessProxy pp = new ProcessProxy(network, getWorkerId());
 		network.getSimulationScheduler().addToThreadPool(pp);
 		return OK_PREFIX + pp.getPid();
 	}

@@ -8,11 +8,11 @@ macro !SOI_RADIUS  "1024"
 
 # ENTRADA 2: largura do mundo virtual simulado, em celulas
 # ENTRADA 3: altura do mundo virtual, em celulas
-macro !WORLD_WIDTH "1"
-macro !WORLD_HEIGHT "1"
-macro !NCELL "5"
-macro !TOTAL_CELLNODES_HALF "5"
-macro !TOTAL_PLAYERS "50"
+macro !WORLD_WIDTH "5"
+macro !WORLD_HEIGHT "5"
+macro !NCELL "10"
+macro !TOTAL_CELLNODES_HALF "250"
+macro !TOTAL_PLAYERS "500"
 # 500"
 macro !LATENCY_MEAN   "25"
 macro !LATENCY_STDDEV "5"
@@ -36,16 +36,20 @@ macro !INFINITE "999999Kbps"
 
 macro !NET_TICK "100ms" 
 network setNetworkTick !NET_TICK
+macro !SIMULATION_TOTAL "302000ms"
+macro !SIMULATION_START "1000ms"
+macro !SIMULATION_END   "301000ms"
 ####macro !SIMULATION_TOTAL "102000ms"
 ####macro !SIMULATION_START "1000ms"
 ####macro !SIMULATION_END   "101000ms"
-macro !SIMULATION_TOTAL "6000ms"
-macro !SIMULATION_START "1000ms"
-macro !SIMULATION_END   "5000ms"
+#macro !SIMULATION_TOTAL "100ms"
+#macro !SIMULATION_START "10ms"
+#macro !SIMULATION_END   "50ms"
 
 
 network setSimulationTimeouts !SIMULATION_TOTAL !SIMULATION_START !SIMULATION_END 
-network setOutput "saida.txt"
+network setOutput "saidastats.txt"
+networkRemote setOutput "saida.txt"
 network setAll !WORLD_WIDTH !WORLD_HEIGHT !NCELL !TOTAL_PLAYERS !CELL_WIDTH !CELL_HEIGHT !SOI_RADIUS !LATENCY_MEAN
 network setSeed 10021
 

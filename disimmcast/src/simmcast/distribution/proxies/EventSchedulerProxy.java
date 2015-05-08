@@ -20,9 +20,9 @@ public class EventSchedulerProxy implements EventSchedulerInterface {
 	public void schedulePacketArrival(double relativeTime_, Packet packet_,
 			PathAccountQueue pathAccount_) {
 		// crear el CommandPacketArrival
-		// darselo a Client y que el CommandPacketArrival
+		// darselo a Worker y que el CommandPacketArrival
 		// se encargue de hacer lo que corresponda
-		network.getClient().sendPacket(((NodeProxy) node).getClientDescription(), relativeTime_, packet_);
+		network.getWorker().sendPacket(((NodeProxy) node).getWorkerDescription(), relativeTime_, packet_);
 	}
 
 	public void schedulePacketDeparture(double relativeTime_, Path path_) {

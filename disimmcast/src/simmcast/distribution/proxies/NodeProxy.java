@@ -11,9 +11,9 @@ public class NodeProxy implements NodeInterface {
 
 	private int networkId;
 	private Network network;
-	private int clientId;
+	private int workerId;
 	private Class classType;
-	private String clientDescription;
+	private String workerDescription;
 	private String label;
 	private EventSchedulerProxy eventScheduler;
 
@@ -23,25 +23,25 @@ public class NodeProxy implements NodeInterface {
 		network = mNetwork;
     	networkId = network.obtainUnicastAddress();
     	label = mLabel;
-    	clientId = network.getServer().createNode(networkId,label,className,arguments);
-    	clientDescription = network.getServer().getClientDescription(clientId);
+    	workerId = network.getManager().createNode(networkId,label,className,arguments);
+    	workerDescription = network.getManager().getWorkerDescription(workerId);
 	}
 
-	public NodeProxy(Network mNetwork, String mLabel, int mNetworkId, int mClientId, String mClientDescription) throws ClassNotFoundException
+	public NodeProxy(Network mNetwork, String mLabel, int mNetworkId, int mWorkerId, String mWorkerDescription) throws ClassNotFoundException
 	{
 		network = mNetwork;
 		networkId = mNetworkId;
 		label = mLabel;
-		clientId = mClientId;
-		clientDescription = mClientDescription;
+		workerId = mWorkerId;
+		workerDescription = mWorkerDescription;
 	}
 
 	public int getNetworkId() {
 		return networkId;
 	}
 
-	public int getClientId() {
-		return clientId;
+	public int getWorkerId() {
+		return workerId;
 	}
 
 	public void begin() {
@@ -54,8 +54,8 @@ public class NodeProxy implements NodeInterface {
 		return label;
 	}
 
-	public String getClientDescription() {
-		return clientDescription;
+	public String getWorkerDescription() {
+		return workerDescription;
 	}
 
 	public int[] getNeighbors() {
@@ -70,7 +70,7 @@ public class NodeProxy implements NodeInterface {
 
 	public boolean invoke(String function, String[] arguments)
 	{
-		network.getServer().invokeCommand(clientId, networkId, function, arguments);
+		network.getManager().invokeCommand(workerId, networkId, function, arguments);
 		return false;
 	}
 

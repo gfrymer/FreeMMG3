@@ -124,7 +124,7 @@ public class PrimaryCellNode extends HostNode
 				
 				String time = (String) pkt.get_next();
 			
-				if (p.getType() == FreeMMGNetwork.PTC_POSITION)
+				if (p.getType().equals(FreeMMGNetwork.PTC_POSITION))
 				{
 					int to_ = (Integer) pkt.get_next();
 					AvatarEvent ae = (AvatarEvent) pkt.get_next();
@@ -136,7 +136,7 @@ public class PrimaryCellNode extends HostNode
 						if (useful) outgoing_events.add(ae);
 					}
 				}
-				else if (p.getType() == FreeMMGNetwork.CTC_SYNC)
+				else if (p.getType().equals(FreeMMGNetwork.CTC_SYNC))
 				{
 					synchronized (tabelao)
 					{
@@ -177,7 +177,7 @@ public class PrimaryCellNode extends HostNode
 					
 					// TODO: Um dia o Fabio vai processar o resto do pacote.
 				}
-				else if (p.getType() == FreeMMGNetwork.ICTC_UPDATE)
+				else if (p.getType().equals(FreeMMGNetwork.ICTC_UPDATE))
 				{
 					synchronized (tabelao)
 					{
@@ -591,7 +591,14 @@ public class PrimaryCellNode extends HostNode
 							std_dev = Math.sqrt(std_dev / N);
 							
 							logger.println(fabio[j] + ": mean = " + mean + " bps, std_dev = " + std_dev + ", max = " + max);
-							global.finishSimulation(networkId, j, mean, std_dev, max);
+							//global.finishSimulation(networkId, j, mean, std_dev, max);
+							Object[] params = new Object[5];
+							params[0] = networkId;
+							params[1] = j;
+							params[2] = mean;
+							params[3] = std_dev;
+							params[4] = max;
+							global.invoke("finishSimulation", params);
 						}	
 
 						break;

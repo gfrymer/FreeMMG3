@@ -13,9 +13,9 @@ public class CommandActivateAt extends CommandProtocol {
 	private double time;
 	private int pid;
 
-	public CommandActivateAt(int mClientId, int mCmdId, byte mAction, String mParameter)
+	public CommandActivateAt(int mWorkerId, int mCmdId, byte mAction, String mParameter)
 	{
-		super(mClientId, mCmdId, mAction, mParameter);
+		super(mWorkerId, mCmdId, mAction, mParameter);
 		JsonObject jo = getJsonParameters();
 		if (jo!=null)
 		{

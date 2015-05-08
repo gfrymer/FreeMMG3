@@ -22,19 +22,19 @@ package simmcast.stream;
 
 import java.io.IOException;
 
-import simmcast.distribution.CloneOnClient;
+import simmcast.distribution.CloneOnWorker;
 
 import arjuna.JavaSim.Distributions.NormalStream;
 
 /**
  * @author Guilherme B. Bedin
  */
-public class LimitedNormalStream extends NormalStream implements CloneOnClient {
+public class LimitedNormalStream extends NormalStream implements CloneOnWorker {
 
    protected double      max;
    protected double      min;
    protected boolean     limit;
-   private String cloneOnClient;
+   private String cloneOnWorker;
 
    public void setLimits(double max_, double min_) {
      max = max_;
@@ -61,17 +61,17 @@ public class LimitedNormalStream extends NormalStream implements CloneOnClient {
    public LimitedNormalStream (double m_, double sd_) {
      super(m_, sd_);
      limit = false;
-     cloneOnClient = "" + m_ + "," + sd_;
+     cloneOnWorker = "" + m_ + "," + sd_;
    }
 
    public LimitedNormalStream (double m_, double sd_, int StreamSelect, long MGSeed, long LCGSeed) {
      super(m_, sd_, StreamSelect, MGSeed, LCGSeed);
      limit = false;
-     cloneOnClient = "" + m_ + "," + sd_ + "," + StreamSelect+ "," + MGSeed+ "," + LCGSeed;
+     cloneOnWorker = "" + m_ + "," + sd_ + "," + StreamSelect+ "," + MGSeed+ "," + LCGSeed;
    }
 
 	public String getConstructorParameters() {
-		return cloneOnClient;
+		return cloneOnWorker;
 	}
 
 }

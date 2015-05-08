@@ -20,6 +20,15 @@
 
 package simmcast.network;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
+
+import simmcast.distribution.CloneOnWorker;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 /**
  * A transport-layer packet. This kind of packet can be used by
  * HostNodes to distinguish receptions by port. Using the
@@ -117,4 +126,67 @@ public class TransportPacket extends Packet implements Cloneable {
             +" (data "+data+"))";
    }
 
+	public final static String PORT = "port";
+
+	@Override
+	public String getConstructorParameters() {
+		String jstring = super.getConstructorParameters();
+		JsonObject jt = new JsonParser().parse(jstring).getAsJsonObject();
+		jt.addProperty(PORT, port);
+		return jt.toString();
+	}
+
+	public static TransportPacket fromJson(JsonObject jo)
+	{
+		int from = jo.get(FROM).getAsInt();
+		int to = jo.get(TO).getAsInt();
+		String type = jo.get(TYPE).getAsString();
+		int size = jo.get(SIZE).getAsInt();
+		long sequence = jo.get(SEQUENCE).getAsLong();
+		String dataClassName = jo.get(CLASS).getAsString();
+		int port = jo.get(PORT).getAsInt();
+		try {
+			Object n = null;
+			Class r = Class.forName(dataClassName);
+			try {
+				java.lang.reflect.Method mt = r.getMethod("fromJson", JsonObject.class);
+				n = mt.invoke(null, new JsonParser().parse(jo.get(DATA).getAsString()).getAsJsonObject());
+			} catch (NoSuchMethodException ne)
+			{
+			}
+			if (n==null)
+			{
+				Constructor[] c = r.getConstructors();
+				for (int i=0;i<c.length;i++)
+				{
+					Type[] pt = c[i].getParameterTypes();
+					if (pt.length==1)
+					{
+						if (pt[0].equals(String.class))
+						{
+							n = c[i].newInstance(jo.get(DATA).getAsString());
+							break;
+						}
+						if (pt[0].equals(JsonObject.class))
+						{
+							n = c[i].newInstance(new JsonParser().parse(jo.get(DATA).getAsString()).getAsJsonObject());
+							break;
+						}
+					}
+				}
+			}
+			return new TransportPacket(from, to, port, new PacketType(type), size, n);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 }

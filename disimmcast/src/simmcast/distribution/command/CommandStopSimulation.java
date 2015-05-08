@@ -4,9 +4,9 @@ import simmcast.network.Network;
 
 public class CommandStopSimulation extends CommandProtocol {
 
-	public CommandStopSimulation(int mClientId, int mCmdId, byte mAction, String mParameter)
+	public CommandStopSimulation(int mWorkerId, int mCmdId, byte mAction, String mParameter)
 	{
-		super(mClientId, mCmdId, mAction, mParameter);
+		super(mWorkerId, mCmdId, mAction, mParameter);
 	}
 
 	public CommandStopSimulation()

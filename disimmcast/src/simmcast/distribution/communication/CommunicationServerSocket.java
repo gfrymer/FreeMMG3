@@ -19,7 +19,7 @@ import simmcast.distribution.command.CommandProtocol;
 
 public class CommunicationServerSocket implements CommunicationServer {
 
-	public static int SERVER_PORT = 12345;
+	public static int MANAGER_PORT = 12345;
     private ServerSocket server;
     private Vector<Socket> socketconnections;
 
@@ -76,7 +76,7 @@ public class CommunicationServerSocket implements CommunicationServer {
     	try {
 			server = new ServerSocket();
 			server.setReuseAddress(true);
-			SocketAddress sa = new InetSocketAddress(getFirstAddress(inetAddr),SERVER_PORT);
+			SocketAddress sa = new InetSocketAddress(getFirstAddress(inetAddr),MANAGER_PORT);
 			server.bind(sa);
 			return true;
 		} catch (IOException e) {
@@ -109,7 +109,7 @@ public class CommunicationServerSocket implements CommunicationServer {
 
 	@Override
 	public String getDescription() {
-		return server.getInetAddress().getHostAddress() + ":" + SERVER_PORT;
+		return server.getInetAddress().getHostAddress() + ":" + MANAGER_PORT;
 	}
 
 	@Override

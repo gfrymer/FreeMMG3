@@ -13,9 +13,9 @@ public class CommandRemoveFromPool extends CommandProtocol {
 
 	private int networkId;
 
-	public CommandRemoveFromPool(int mClientId, int mCmdId, byte mAction, String mParameter)
+	public CommandRemoveFromPool(int mWorkerId, int mCmdId, byte mAction, String mParameter)
 	{
-		super(mClientId, mCmdId, mAction, mParameter);
+		super(mWorkerId, mCmdId, mAction, mParameter);
 		JsonObject jo = getJsonParameters();
 		if (jo!=null)
 		{

@@ -666,7 +666,6 @@ public abstract class Node implements NodeInterface {
       try {
          Path receiverPath = null;
          int destination = packet_.getDestination();
-
          if (sendTime > 0)
             thread_.block(sendTime);
          if (Network.isMulticast(destination)) {

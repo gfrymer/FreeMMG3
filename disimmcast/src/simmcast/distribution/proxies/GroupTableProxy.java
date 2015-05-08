@@ -16,7 +16,7 @@ public class GroupTableProxy implements GroupTableInterface {
 	public GroupInterface removeGroup(int i_) {
 		String[] params = new String[1];
 		params[0] = "" + i_;
-		String paramsRet = network.getClient().invokeCommand(i_, GroupTableInterface.GP_FNCTN_PREFIX + "removeGroup", params);
+		String paramsRet = network.getWorker().invokeCommand(i_, GroupTableInterface.GP_FNCTN_PREFIX + "removeGroup", params);
 		if (paramsRet!=null)
 		{
 			return GroupProxy.createGroupProxy(network,paramsRet);
@@ -27,7 +27,7 @@ public class GroupTableProxy implements GroupTableInterface {
 	public GroupInterface getGroupById(int i_) {
 		String[] params = new String[1];
 		params[0] = "" + i_;
-		String paramsRet = network.getClient().invokeCommand(i_, GroupTableInterface.GP_FNCTN_PREFIX + "getGroupById", params);
+		String paramsRet = network.getWorker().invokeCommand(i_, GroupTableInterface.GP_FNCTN_PREFIX + "getGroupById", params);
 		if (paramsRet!=null)
 		{
 			return GroupProxy.createGroupProxy(network,paramsRet);
@@ -38,7 +38,7 @@ public class GroupTableProxy implements GroupTableInterface {
 	public int[] getMembersById(int i_) {
 		String[] params = new String[1];
 		params[0] = "" + i_;
-		String paramsRet = network.getClient().invokeCommand(i_, GroupTableInterface.GP_FNCTN_PREFIX + "getGroupById", params);
+		String paramsRet = network.getWorker().invokeCommand(i_, GroupTableInterface.GP_FNCTN_PREFIX + "getGroupById", params);
 		if (paramsRet!=null)
 		{
 			return GroupProxy.createGroupProxy(network,paramsRet).getNetworkIds();

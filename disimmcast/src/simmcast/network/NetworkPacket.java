@@ -1,5 +1,14 @@
 package simmcast.network;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import simmcast.distribution.CloneOnWorker;
+
 /**
  * A more sophisticated type of packet that allows, for example,
  * deferring definition and posterior redefining of the
@@ -57,7 +66,7 @@ public class NetworkPacket extends Packet {
     * @param data_ An arbitrary object representing data stored within
     * the packet.
     */
-   public NetworkPacket(int from_, int size_, Object data_) {
+   public NetworkPacket(int from_, int size_, CloneOnWorker data_) {
       super(from_, TEMP_UNSET, PACKET_TYPE, size_, data_);
    }
    
@@ -71,7 +80,7 @@ public class NetworkPacket extends Packet {
     * @param data_ An arbitrary object representing data stored within
     * the packet.
     */
-   public NetworkPacket(int from_, int to_, int size_, Object data_, int ttl_) {
+   public NetworkPacket(int from_, int to_, int size_, CloneOnWorker data_, int ttl_) {
       super(from_, to_, PACKET_TYPE, size_, data_);
       ttl = (ttl_ <= MAX_TTL ? ttl_ : MAX_TTL);
    }
@@ -116,4 +125,67 @@ public class NetworkPacket extends Packet {
       return ttl;
    }
 
+	public final static String TTL = "ttl";
+
+	@Override
+	public String getConstructorParameters() {
+		String jstring = super.getConstructorParameters();
+		JsonObject jt = new JsonParser().parse(jstring).getAsJsonObject();
+		jt.addProperty(TTL, ttl);
+		return jt.toString();
+	}
+
+	public static NetworkPacket fromJson(JsonObject jo)
+	{
+		int from = jo.get(FROM).getAsInt();
+		int to = jo.get(TO).getAsInt();
+		String type = jo.get(TYPE).getAsString();
+		int size = jo.get(SIZE).getAsInt();
+		long sequence = jo.get(SEQUENCE).getAsLong();
+		String dataClassName = jo.get(CLASS).getAsString();
+		int ttl = jo.get(TTL).getAsInt();
+		try {
+			Object n = null;
+			Class r = Class.forName(dataClassName);
+			try {
+				java.lang.reflect.Method mt = r.getMethod("fromJson", JsonObject.class);
+				n = mt.invoke(null, new JsonParser().parse(jo.get(DATA).getAsString()).getAsJsonObject());
+			} catch (NoSuchMethodException ne)
+			{
+			}
+			if (n==null)
+			{
+				Constructor[] c = r.getConstructors();
+				for (int i=0;i<c.length;i++)
+				{
+					Type[] pt = c[i].getParameterTypes();
+					if (pt.length==1)
+					{
+						if (pt[0].equals(String.class))
+						{
+							n = c[i].newInstance(jo.get(DATA).getAsString());
+							break;
+						}
+						if (pt[0].equals(JsonObject.class))
+						{
+							n = c[i].newInstance(new JsonParser().parse(jo.get(DATA).getAsString()).getAsJsonObject());
+							break;
+						}
+					}
+				}
+			}
+			return new NetworkPacket(from, to, size, (CloneOnWorker) n, ttl);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 }

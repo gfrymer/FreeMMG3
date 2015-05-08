@@ -9,7 +9,7 @@ import java.net.UnknownHostException;
 
 import simmcast.distribution.command.CommandProtocol;
 
-public class CommunicationClientNamedPipe implements CommunicationClient, CommunicationOutputStream {
+public class CommunicationClientNamedPipe implements CommunicationClient, CommunicationStreams {
 
 	private Connection connection;
 	private String thisAddress;
@@ -41,8 +41,8 @@ public class CommunicationClientNamedPipe implements CommunicationClient, Commun
 			DataInputStream ins = new DataInputStream(new FileInputStream(server + "_" + connNumber + CommunicationServerNamedPipe.OUT_SUFFIX));
 			System.out.println("Connected to " + server);
 
-			DataInputStream udpis = new DataInputStream(new UDPInputStream(thisAddress,CommunicationServerSocket.SERVER_PORT));
-			connection = new Connection(-1, thisAddress, ins, ous, new java.util.concurrent.LinkedBlockingQueue<CommandProtocol>(), udpis, this);
+//			DataInputStream udpis = new DataInputStream(new UDPInputStream(thisAddress,CommunicationServerSocket.MANAGER_PORT));
+			connection = new Connection(-1, thisAddress, ins, ous, new java.util.concurrent.LinkedBlockingQueue<CommandProtocol>(), this);
 			connection.start();
 			return connection;
 		} catch (IOException e) {
@@ -75,7 +75,7 @@ public class CommunicationClientNamedPipe implements CommunicationClient, Commun
 	{
 		DataOutputStream udpos;
 		try {
-			udpos = new DataOutputStream(new UDPOutputStream(client,CommunicationServerSocket.SERVER_PORT));
+			udpos = new DataOutputStream(new UDPOutputStream(client,CommunicationServerSocket.MANAGER_PORT));
 			return udpos;
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -83,5 +83,17 @@ public class CommunicationClientNamedPipe implements CommunicationClient, Commun
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	@Override
+	public DataInputStream getInputStream(String worker) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void listenWorkers() {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -139,7 +140,7 @@ public class Network extends simmcast.engine.Process {
       {
 		manager = new Manager(this,host);
 		manager.listenForConnections();
-		System.out.println("Network on server mode and listening for client connections");
+		System.out.println("Network on manager mode and listening for worker connections");
 		System.out.println("Press ENTER to start simulation");
 	    BufferedReader reader = new BufferedReader(new InputStreamReader(
 	            System.in));
@@ -155,11 +156,11 @@ public class Network extends simmcast.engine.Process {
       }
       else
       {
-  		System.out.println("Network on client mode and connecting to server on: " + host);
+  		System.out.println("Network on worker mode and connecting to manager on: " + host);
 		worker = new Worker(this);
 		if (worker.connect(host))
 		{
-	  		System.out.println("Client connected succesfully");
+	  		System.out.println("Worker connected succesfully");
 		}
 	    setScheduler(new simmcast.distribution.proxies.SchedulerProxy(this));
       }
@@ -178,9 +179,9 @@ public class Network extends simmcast.engine.Process {
    // *****************************************************
 
    /**
-    * Returns the server object
+    * Returns the manager object
     */
-   public Manager getServer()
+   public Manager getManager()
    {
 	   return manager;
    }
@@ -194,9 +195,9 @@ public class Network extends simmcast.engine.Process {
    }
 
    /**
-    * Returns the client object
+    * Returns the worker object
     */
-   public Worker getClient()
+   public Worker getWorker()
    {
 	   return worker;
    }
@@ -376,7 +377,7 @@ public class Network extends simmcast.engine.Process {
     * Returns the next free unicast address in the network's
     * address space, marking it as allocated.
     * This is usually called during processing of the configuration
-    * file, as nodes are created. The client code shouldn't need
+    * file, as nodes are created. The worker code shouldn't need
     * to use this normally.
     *
     * @return A new network id within the unicast range.
@@ -391,7 +392,7 @@ public class Network extends simmcast.engine.Process {
     * Returns the next free multicast address in the network's
     * address space, marking it as allocated.
     * This is usually called during processing of the configuration
-    * file, as groups are created. The client code shouldn't need
+    * file, as groups are created. The worker code shouldn't need
     * to use this normally.
     *
     * @return A new network id within the multicast range.
@@ -724,6 +725,52 @@ public class Network extends simmcast.engine.Process {
 		   return new Long((String) g).longValue();
 	   }
 	   return Long.MIN_VALUE;	   
+   }
+
+   public Object invoke(String methodName, Object[] parameters)
+   {
+	   try {
+			Method[] methods = getClass().getMethods();
+			Method method = null;
+			for (int i=0;i<methods.length;i++)
+			{
+				if (methods[i].getName().equals(methodName) && methods[i].getParameterTypes().length==parameters.length)
+				{
+					method = methods[i];
+					break;
+				}
+			}
+			if (method==null)
+			{
+				return null;
+			}
+			if (isManager)
+			{
+				return method.invoke(methodName, parameters);
+			}
+			else
+			{
+				String[] arguments = new String[parameters.length];
+				for (int i=0;i<parameters.length;i++)
+				{
+					arguments[i] = parameters[i].toString();					
+				}
+				String retdata = worker.invokeCommand("network", methodName, arguments);
+				return retdata;
+			}
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	   return null;	   
    }
 
    public Object get(String fieldName)
