@@ -58,7 +58,6 @@ public class Pacote extends Vector<Object> implements CloneOnWorker
 	public final static String CLASS_NAME = "cname";
 	public final static String DATA = "data";
 
-	@Override
 	public String getConstructorParameters()
 	{
 		JsonObject gson = new JsonObject();

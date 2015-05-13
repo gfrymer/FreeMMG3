@@ -24,7 +24,6 @@ public class IARandomWayPoint implements IA
 		targetY = Math.random() * (double) maxY;		
 	}
 
-	@Override
 	public int[] think(double time)
 	{
 		double diffX = targetX - currentX;
@@ -44,7 +43,6 @@ public class IARandomWayPoint implements IA
 		return get_pos();
 	}
 
-	@Override
 	public int[] get_pos()
 	{
 		int[] xy = new int[2];

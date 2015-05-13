@@ -33,19 +33,6 @@ public class Avatar implements CloneOnWorker
 	public final static String LASTROUND = "lround";
 	public final static String TS = "ts";
 
-	@Override
-	public String getConstructorParameters()
-	{
-		JsonObject gson = new JsonObject();
-		gson.addProperty(X, x);
-		gson.addProperty(Y, y);
-		gson.addProperty(ID, id);
-		gson.addProperty(SEQ, seq);
-		gson.addProperty(LASTROUND, lastRound);
-		gson.addProperty(TS, timestamp);
-		return gson.toString();
-	}
-
 	public static Avatar fromJson(JsonObject jo)
 	{
 		AvatarEvent ae = new AvatarEvent();
@@ -57,5 +44,17 @@ public class Avatar implements CloneOnWorker
 		Avatar a = new Avatar(ae);
 		a.lastRound = jo.get(LASTROUND).getAsInt();
 		return a;
+	}
+
+	public String getConstructorParameters()
+	{
+		JsonObject gson = new JsonObject();
+		gson.addProperty(X, x);
+		gson.addProperty(Y, y);
+		gson.addProperty(ID, id);
+		gson.addProperty(SEQ, seq);
+		gson.addProperty(LASTROUND, lastRound);
+		gson.addProperty(TS, timestamp);
+		return gson.toString();
 	}
 }

@@ -216,7 +216,6 @@ public class PrimaryCellNode extends HostNode
 			this.a = a;
 		}
 		
-		@Override
 		public int compare(Avatar o1, Avatar o2)
 		{
 			double dist1 = dist(a, o1);
