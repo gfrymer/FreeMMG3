@@ -24,7 +24,6 @@ public class IARandomWalk implements IA
 		currentY = Math.random() * (double) maxY;	
 	}
 
-	@Override
 	public int[] think(double time)
 	{
 		double newAngle = 2 * Math.PI * ((double) r.nextInt(360)) / 360.0;
@@ -40,7 +39,6 @@ public class IARandomWalk implements IA
 		return get_pos();
 	}
 
-	@Override
 	public int[] get_pos()
 	{
 		int[] xy = new int[2];

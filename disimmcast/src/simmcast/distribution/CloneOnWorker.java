@@ -1,5 +1,5 @@
 package simmcast.distribution;
 
 public interface CloneOnWorker {
-	String getConstructorParameters();
+	public String getConstructorParameters();
 }

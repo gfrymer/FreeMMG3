@@ -15,8 +15,6 @@ import java.util.Map;
 import simmcast.distribution.command.CommandPacketArrival;
 import simmcast.distribution.command.CommandProtocol;
 
-import com.sun.xml.internal.ws.api.message.Packet;
-
 public class Connection extends Thread implements Runnable {
 	
 	private java.util.concurrent.LinkedBlockingQueue<CommandProtocol> in;

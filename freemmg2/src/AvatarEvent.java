@@ -33,7 +33,6 @@ public class AvatarEvent extends Event
 	public final static String GHOST = "ghost";
 	public final static String TS = "ts";
 
-	@Override
 	public String getConstructorParameters()
 	{
 		JsonObject gson = new JsonObject();
