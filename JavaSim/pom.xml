@@ -1,4 +1,4 @@
-<project 
+<project
 		xmlns="http://maven.apache.org/POM/4.0.0" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
@@ -12,17 +12,10 @@
 		<version>0.0.1-SNAPSHOT</version>
     </parent>
 	
-	<groupId>fabio</groupId>
-	<artifactId>FreeMMG2</artifactId>
+	<groupId>JavaSim</groupId>
+	<artifactId>JavaSim</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>FreeMMG2</name>
-	<description>FreeMMG2</description>
-	
-	<dependencies>
-		<dependency>
-			<groupId>DiSimmcast</groupId>
-			<artifactId>DiSimmcast</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
+	<name>JavaSim</name>
+	<description>JavaSim</description>
+
 </project>
